@@ -60,7 +60,7 @@
         }
 
         /* =========================================
-           DESKTOP HEADER (DEFAULT)
+           DESKTOP HEADER
            ========================================= */
         header {
             background: var(--card-dash); 
@@ -76,7 +76,6 @@
         .brand-text h2 { margin: 0; font-size: 1.1rem; color: var(--text-highlight); font-weight: 700; letter-spacing: 1px; }
         .brand-text span { font-size: 0.7rem; color: var(--text-label); display: block; }
         
-        /* Menu Desktop */
         .nav-menu { display: flex; gap: 10px; align-items: center; }
         #clock { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; color: var(--warning); margin-right: 15px; }
         
@@ -89,15 +88,11 @@
         .btn-save { background: #15803d !important; border-color: #15803d !important; }
         .btn-reset { background: #b91c1c !important; border-color: #b91c1c !important; }
 
-        /* Elements Hidden on Desktop */
-        .mobile-header-right { display: none; }
-        .bottom-nav { display: none; }
-        .mobile-menu-dropdown { display: none; }
+        .mobile-header-right, .bottom-nav, .mobile-menu-dropdown { display: none; }
 
         /* --- DASHBOARD CONTENT --- */
         .container { padding: 30px; max-width: 1600px; margin: 0 auto; }
-        
-        #section-totals, #section-lines, #section-chart { display: block; } /* Desktop: Show All */
+        #section-totals, #section-lines, #section-chart { display: block; } 
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 35px; }
         .card { background: var(--card-dash); padding: 20px; border-radius: 6px; border: 1px solid var(--border); transition: 0.2s; display: flex; flex-direction: column; justify-content: center; }
@@ -136,10 +131,9 @@
         table { white-space: nowrap; }
 
         /* =========================================
-           MOBILE STYLE FIX (UI TOTAL NOT CUT OFF)
+           MOBILE STYLE FIX
            ========================================= */
         @media (max-width: 768px) {
-            /* 1. Header */
             header {
                 position: fixed; top: 0; left: 0; width: 100%;
                 background: var(--wa-header); border-bottom: 1px solid #334155;
@@ -192,7 +186,7 @@
             .summary-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 0; }
             .grid { grid-template-columns: 1fr; gap: 10px; }
             
-            /* --- FIX UTAMA: KARTU TOTAL AGAR TIDAK TERPOTONG --- */
+            /* --- KARTU TOTAL UI MOBILE FIX --- */
             .card, .grand-card { 
                 padding: 15px; min-height: 120px; margin-bottom: 0;
                 background: var(--card-dash); border: 1px solid var(--border);
@@ -202,27 +196,19 @@
             .summary-grid .mini-table colgroup col:nth-child(1) { width: 50% !important; }
             .summary-grid .mini-table colgroup col:nth-child(2) { width: 25% !important; }
             .summary-grid .mini-table colgroup col:nth-child(3) { width: 25% !important; }
-            
-            /* Pastikan table layout auto agar sel bisa melebar jika konten sangat panjang */
             .summary-grid .mini-table { table-layout: auto; }
             
-            /* Font size tetap sama dengan line */
             .mini-table td { font-size: 1.4rem; padding-top: 2px; }
             .mini-table th { font-size: 0.7rem; }
             
-            /* Grand Total Style di dalam tabel */
             .grand-val { font-size: 1.4rem; margin: 0; margin-top: 5px; color: white; }
             .grand-label { font-size: 1.1rem; color: var(--text-highlight); font-family: 'JetBrains Mono', monospace; font-weight:700; margin-bottom:0; text-transform: none; letter-spacing: 0; }
             
-            .reset-control {
-                width: 100%; justify-content: center; padding: 5px; margin-top: 10px;
-                font-size: 0.7rem;
-            }
+            .reset-control { width: 100%; justify-content: center; padding: 5px; margin-top: 10px; font-size: 0.7rem; }
 
             .table-responsive table { width: 100%; table-layout: fixed; white-space: normal; }
             .table-responsive th { font-size: 0.75rem; vertical-align: middle; }
             .table-responsive td { font-size: 0.85rem; padding: 8px 5px; vertical-align: middle; word-wrap: break-word; }
-            
             .table-responsive th:nth-child(1), .table-responsive td:nth-child(1) { width: 30%; }
             .table-responsive th:nth-child(2), .table-responsive td:nth-child(2) { width: 25%; text-align: center; }
             .table-responsive th:nth-child(3), .table-responsive td:nth-child(3) { width: 45%; }
@@ -340,11 +326,8 @@
                             <div><span class="grand-label">GRAND TOTAL</span><span class="badge" style="background:rgba(250,204,21,0.2); color:#facc15; border:1px solid rgba(250,204,21,0.4);">PRODUCTION</span></div>
                         </div>
                         <table class="mini-table">
-                             <tr>
-                                <td colspan="3" class="grand-val" id="grandTotal" style="text-align:left;">0</td>
-                            </tr>
+                             <tr><td colspan="3" class="grand-val" id="grandTotal" style="text-align:left;">0</td></tr>
                         </table>
-                        
                         <div class="reset-control">
                             <span style="font-weight:bold; color:#94a3b8; text-transform:uppercase;">Auto Reset:</span>
                             <div class="time-group">
@@ -420,6 +403,17 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+        // CONFIG: MQTT (Broker EMQX Public)
+        const mqttConfig = {
+            host: "broker.emqx.io",
+            port: 8084, // WSS Port for EMQX
+            useSSL: true,
+            path: "/mqtt",
+            username: "",
+            password: "",
+            topicBase: "iot/produksi_baru" 
+        };
+
         const firebaseConfig = {
             apiKey: "AIzaSyAcA7CYQqoig7eVaMbopIQpq9EWn1mVudA",
             authDomain: "iot-phi.firebaseapp.com",
@@ -437,6 +431,7 @@
         let prodChart = null;
         let currentChartMode = 'daily'; 
 
+        // --- NAVIGATION HELPERS ---
         window.switchMobileTab = (tabName, btnElement) => {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
@@ -452,24 +447,19 @@
             if(tabName === 'chart') document.getElementById('section-chart').style.display = 'block';
         }
 
-        window.toggleMobileDropdown = () => {
-            document.getElementById('mobileDropdown').classList.toggle('active');
-        }
-
+        window.toggleMobileDropdown = () => { document.getElementById('mobileDropdown').classList.toggle('active'); }
         window.syncSelect = (val) => {
             document.getElementById('machineSelectDesktop').value = val;
             document.getElementById('machineSelectMobile').value = val;
-            window.currentMachineSelection = val; 
         }
 
+        // --- LOGIN LOGIC ---
         document.addEventListener('DOMContentLoaded', () => {
             const userField = document.getElementById("username");
             const passField = document.getElementById("password");
-            
-            userField.focus(); 
-
-            userField.addEventListener("keydown", function(event) { if(event.key === "Enter") { event.preventDefault(); passField.focus(); } });
-            passField.addEventListener("keydown", function(event) { if(event.key === "Enter") { event.preventDefault(); doLogin(); } });
+            if(userField) userField.focus();
+            if(userField) userField.addEventListener("keydown", function(event) { if(event.key === "Enter") { event.preventDefault(); passField.focus(); } });
+            if(passField) passField.addEventListener("keydown", function(event) { if(event.key === "Enter") { event.preventDefault(); doLogin(); } });
         });
 
         window.adjustTime = (id, step, max) => {
@@ -494,10 +484,9 @@
         window.logout = () => { sessionStorage.clear(); location.reload(); };
 
         window.onload = () => {
-            if(document.getElementById("loginPage").style.display !== "none") {
-                document.getElementById("username").focus();
+            if(document.getElementById("loginPage") && document.getElementById("loginPage").style.display !== "none") {
+                if(document.getElementById("username")) document.getElementById("username").focus();
             }
-
             if(sessionStorage.getItem("login") === "1") {
                 document.getElementById("loginPage").style.display = "none";
                 document.getElementById("dashboardPage").style.display = "block";
@@ -514,13 +503,13 @@
         function updateClock() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
-            document.getElementById("clock").innerText = timeStr;
-            document.getElementById("mobileClock").innerText = timeStr; 
+            if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
+            if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
             
             const setH = parseInt(document.getElementById("setHour").value);
             const setM = parseInt(document.getElementById("setMin").value);
             if (now.getHours() === setH && now.getMinutes() === setM && now.getSeconds() === 0) {
-                manualSave(true);
+                saveAndReset("ALL"); 
             }
         }
 
@@ -538,7 +527,6 @@
 
         function updateUI() {
             if (!globalStartTime) return;
-            
             let sumClubAct = 0, sumClubPred = 0;
             let sumPouchAct = 0, sumPouchPred = 0;
             const now = Date.now();
@@ -565,7 +553,6 @@
                     sumClubPred += prediction;
                 }
             }
-
             document.getElementById("clubActual").innerText = sumClubAct.toLocaleString();
             document.getElementById("clubPredict").innerText = sumClubPred.toLocaleString();
             let clubEff = sumClubPred > 0 ? ((sumClubAct / sumClubPred) * 100).toFixed(0) : 0;
@@ -580,18 +567,21 @@
             
             const grandTotal = sumClubAct + sumPouchAct;
             document.getElementById("grandTotal").innerText = grandTotal.toLocaleString();
-            
             if(prodChart && currentChartMode === 'daily') updateRealtimeChart(grandTotal);
         }
 
         function connectMQTT() {
-            const client = mqtt.connect("wss://c836c913dd894d7db71ce06137b51f4e.s1.eu.hivemq.cloud:8884/mqtt", {
-                username: "adminphi123", password: "Phi12345"
+            const client = mqtt.connect(`wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`, {
+                username: mqttConfig.username,
+                password: mqttConfig.password,
+                clientId: 'web_dashboard_' + Math.random().toString(16).substr(2, 8)
             });
+
             client.on("connect", () => { 
                 window.mqttClient = client; 
-                for(let i=1; i<=7; i++) client.subscribe(`iot/esp32/machine0${i}/counter`);
+                for(let i=1; i<=7; i++) client.subscribe(`${mqttConfig.topicBase}/machine0${i}/counter`);
             });
+
             client.on("message", (topic, msg) => {
                 try {
                     const data = JSON.parse(msg.toString());
@@ -609,78 +599,78 @@
             for(let i=1; i<=14; i++) {
                 let badgeClass = (i === 5 || i === 6) ? "badge-pouch" : "badge-club";
                 let typeName = (i === 5 || i === 6) ? "POUCHCAN" : "CLUBCAN";
-
                 c.innerHTML += `
                 <div class="card">
                     <div class="card-header">
-                        <div>
-                            <span class="card-title">LINE ${i.toString().padStart(2,'0')}</span>
-                            <span class="badge ${badgeClass}">${typeName}</span>
-                        </div>
+                        <div><span class="card-title">LINE ${i.toString().padStart(2,'0')}</span><span class="badge ${badgeClass}">${typeName}</span></div>
                         <span class="card-speed">70 CPM</span>
                     </div>
                     <table class="mini-table">
                         <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
                         <tr><th>Actual</th><th style="text-align:center">Predict</th><th style="text-align:right">Eff %</th></tr>
-                        <tr>
-                            <td class="data-val" id="L${i}">0</td>
-                            <td class="data-val" style="text-align:center" id="P${i}">0</td>
-                            <td class="data-val" style="text-align:right" id="E${i}">0%</td>
-                        </tr>
+                        <tr><td class="data-val" id="L${i}">0</td><td class="data-val" style="text-align:center" id="P${i}">0</td><td class="data-val" style="text-align:right" id="E${i}">0%</td></tr>
                     </table>
                 </div>`;
             }
         }
 
+        async function saveAndReset(targetMachine) {
+            const totalC = document.getElementById("clubActual").innerText;
+            const totalP = document.getElementById("pouchActual").innerText;
+            const grand = document.getElementById("grandTotal").innerText;
+
+            await push(ref(database, 'history'), {
+                time: new Date().toLocaleString(),
+                grandTotal: grand,
+                detail: { club: totalC, pouch: totalP },
+                counter: {...latestCounter}, 
+                resetType: targetMachine
+            });
+            await set(ref(database, 'config/productionStartTime'), Date.now());
+            if(prodChart) { prodChart.data.labels=[]; prodChart.data.datasets[0].data=[]; prodChart.update(); }
+
+            if(window.mqttClient && window.mqttClient.connected) {
+                if(targetMachine === "ALL") {
+                    for(let i=1; i<=7; i++) {
+                        window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
+                    }
+                } else {
+                    window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
+                }
+            } else {
+                alert("MQTT Disconnected. Reset command sent locally only.");
+            }
+
+            for (let i = 1; i <= 14; i++) { latestCounter[`L${i}`] = 0; }
+            updateUI(); 
+        }
+
         window.manualSave = async (isAuto = false) => {
-            if(isAuto || confirm("Simpan data & Reset?")) {
+            if(isAuto || confirm("Simpan Data ke History?")) {
                 const totalC = document.getElementById("clubActual").innerText;
                 const totalP = document.getElementById("pouchActual").innerText;
                 const grand = document.getElementById("grandTotal").innerText;
-
                 await push(ref(database, 'history'), {
                     time: new Date().toLocaleString(),
                     grandTotal: grand,
                     detail: { club: totalC, pouch: totalP },
-                    counter: latestCounter
+                    counter: {...latestCounter},
+                    type: "Manual Save"
                 });
-                
-                await set(ref(database, 'config/productionStartTime'), Date.now());
-                if(prodChart) { prodChart.data.labels=[]; prodChart.data.datasets[0].data=[]; prodChart.update(); }
-
-                if(window.mqttClient && window.mqttClient.connected) {
-                    for(let i=1; i<=7; i++) {
-                        window.mqttClient.publish(`iot/esp32/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
-                    }
-                }
-                if(!isAuto) location.reload();
+                if(!isAuto) alert("Data berhasil disimpan ke History!");
             }
         };
 
-        window.resetCounter = () => {
+        window.resetCounter = async () => {
             let m = document.getElementById("machineSelectDesktop").value;
-            if(window.innerWidth <= 768) {
-                m = document.getElementById("machineSelectMobile").value;
-            }
-            
-            if(!window.mqttClient || !window.mqttClient.connected) {
-                alert("MQTT Disconnected. Please refresh page.");
-                return;
-            }
+            if(window.innerWidth <= 768) { m = document.getElementById("machineSelectMobile").value; }
             if(!m) return alert("Pilih Mesin atau Reset All dulu!");
             
-            if(m === 'all') {
-                if(confirm("RESET ALL MACHINES (01-07). Are you sure?")) {
-                    for(let i=1; i<=7; i++) {
-                        window.mqttClient.publish(`iot/esp32/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
-                    }
-                    alert("Command sent to ALL machines.");
-                }
-            } else {
-                if(confirm(`Reset ONLY ${m.toUpperCase()}?`)) {
-                    window.mqttClient.publish(`iot/esp32/${m}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
-                    alert(`Command sent to ${m}.`);
-                }
+            let confirmMsg = (m === 'all') ? "RESET SEMUA MESIN? Data akan disimpan otomatis." : `RESET ${m.toUpperCase()}? Data akan disimpan otomatis.`;
+            if(confirm(confirmMsg)) {
+                let target = (m === 'all') ? "ALL" : m;
+                await saveAndReset(target);
+                alert("Perintah Reset dikirim & Data disimpan.");
             }
         };
 
@@ -700,27 +690,13 @@
 
             prodChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: [], 
-                    datasets: [{
-                        label: 'Grand Total', 
-                        data: [],
-                        borderColor: '#38bdf8', backgroundColor: gradient,
-                        fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0
-                    }]
-                },
+                data: { labels: [], datasets: [{ label: 'Grand Total', data: [], borderColor: '#38bdf8', backgroundColor: gradient, fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: {display:false} },
                     scales: {
-                        y: {
-                            beginAtZero: true, grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono', monospace" }, callback: function(val) { return val >= 1000 ? (val/1000) + 'k' : val; } }
-                        },
-                        x: { 
-                            grid: {display:false}, 
-                            ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono', monospace" }, maxTicksLimit: 6, maxRotation: 0, autoSkip: true } 
-                        }
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono', monospace" }, callback: function(val) { return val >= 1000 ? (val/1000) + 'k' : val; } } },
+                        x: { grid: {display:false}, ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono', monospace" }, maxTicksLimit: 6, maxRotation: 0, autoSkip: true } }
                     }
                 }
             });
@@ -744,19 +720,12 @@
         window.setChartPeriod = (period, btn) => {
             document.querySelectorAll('.chart-filters button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             currentChartMode = period;
             prodChart.data.labels = [];
             prodChart.data.datasets[0].data = [];
             if(period === 'daily') {} 
-            else if(period === 'weekly') {
-                prodChart.data.labels = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
-                prodChart.data.datasets[0].data = [15000, 18000, 16000, 20000, 22000, 15000, 5000]; 
-            } 
-            else if (period === 'monthly') {
-                prodChart.data.labels = ['WEEK 1','WEEK 2','WEEK 3','WEEK 4'];
-                prodChart.data.datasets[0].data = [100000, 120000, 110000, 130000]; 
-            }
+            else if(period === 'weekly') { prodChart.data.labels = ['MON','TUE','WED','THU','FRI','SAT','SUN']; prodChart.data.datasets[0].data = [15000, 18000, 16000, 20000, 22000, 15000, 5000]; } 
+            else if (period === 'monthly') { prodChart.data.labels = ['WEEK 1','WEEK 2','WEEK 3','WEEK 4']; prodChart.data.datasets[0].data = [100000, 120000, 110000, 130000]; }
             prodChart.update();
         }
 
