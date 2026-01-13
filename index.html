@@ -301,7 +301,7 @@
                 <div class="summary-grid">
                     <div class="card" style="border-top: 4px solid var(--primary);">
                         <div class="card-header">
-                            <div><span class="card-title" style="color:var(--primary)">TOTAL CLUBCAN</span><span class="badge badge-club">LINES 01-04, 07-14</span></div>
+                            <div><span class="card-title" style="color:var(--primary)">TOTAL CLUBCAN</span><span class="badge badge-club">LINES 01-04, 07-12, 14-15</span></div>
                         </div>
                         <table class="mini-table">
                             <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
@@ -427,7 +427,8 @@
         let latestCounter = {};
         let globalStartTime = null; 
         const targetCPM = 70; 
-        const rates = Array(14).fill(targetCPM); 
+        // Array 16 elemen agar aman handling index 15
+        const rates = Array(16).fill(targetCPM); 
         let prodChart = null;
         let currentChartMode = 'daily'; 
 
@@ -532,7 +533,10 @@
             const now = Date.now();
             const minutesElapsed = (now - globalStartTime) / 60000;
 
-            for (let i = 1; i <= 14; i++) {
+            // UPDATED: Loop 1..15, skip 13
+            for (let i = 1; i <= 15; i++) {
+                if(i === 13) continue; // SKIP LINE 13
+
                 const actual = latestCounter[`L${i}`] || 0;
                 const prediction = Math.max(0, Math.round(rates[i-1] * minutesElapsed));
                 let eff = prediction > 0 ? ((actual / prediction) * 100).toFixed(0) : 0;
@@ -579,6 +583,7 @@
 
             client.on("connect", () => { 
                 window.mqttClient = client; 
+                // Subscribe cuma sampai Machine 07
                 for(let i=1; i<=7; i++) client.subscribe(`${mqttConfig.topicBase}/machine0${i}/counter`);
             });
 
@@ -596,7 +601,10 @@
         function generateCards() {
             const c = document.getElementById("cardsContainer");
             c.innerHTML = "";
-            for(let i=1; i<=14; i++) {
+            // UPDATED: Loop 1..15, skip 13
+            for(let i=1; i<=15; i++) {
+                if(i === 13) continue; // SKIP LINE 13
+
                 let badgeClass = (i === 5 || i === 6) ? "badge-pouch" : "badge-club";
                 let typeName = (i === 5 || i === 6) ? "ROUNDCAN" : "CLUBCAN";
                 
@@ -632,6 +640,7 @@
 
             if(window.mqttClient && window.mqttClient.connected) {
                 if(targetMachine === "ALL") {
+                    // Reset sampai Machine 07 saja
                     for(let i=1; i<=7; i++) {
                         window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" }));
                     }
@@ -642,7 +651,8 @@
                 alert("MQTT Disconnected. Reset command sent locally only.");
             }
 
-            for (let i = 1; i <= 14; i++) { latestCounter[`L${i}`] = 0; }
+            // Loop reset lokal 1..15
+            for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; }
             updateUI(); 
         }
 
@@ -757,7 +767,6 @@
             b.innerHTML = "";
             if(snap.exists()) {
                 Object.values(snap.val()).reverse().forEach(h => {
-                
                     let clubInfo = h.detail ? `<span style='color:var(--primary)'>Club: ${h.detail.club}</span> | <span style='color:var(--purple)'>Round: ${h.detail.pouch}</span>` : '-';
                     let totalShow = h.grandTotal ? h.grandTotal : h.total;
                     b.innerHTML += `<tr>
