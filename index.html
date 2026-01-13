@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pasific Harvest Indonesia - IoT Dashboard</title>
+    <title>PASIFIK HARVEST INDONESIA - IoT Dashboard</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,7 +241,7 @@
             <div class="brand-section">
                 <img src="phi.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
                 <div class="brand-text">
-                    <h2>PASIFIC HARVEST</h2>
+                    <h2>PASIFIK HARVEST INDONESIA</h2>
                     <span>INTEGRATED IOT SYSTEM</span>
                 </div>
             </div>
@@ -312,7 +312,7 @@
 
                     <div class="card" style="border-top: 4px solid var(--purple);">
                         <div class="card-header">
-                            <div><span class="card-title" style="color:var(--purple)">TOTAL POUCHCAN</span><span class="badge badge-pouch">LINE 05 & 06</span></div>
+                            <div><span class="card-title" style="color:var(--purple)">TOTAL ROUNDCAN</span><span class="badge badge-pouch">LINE 05 & 06</span></div>
                         </div>
                         <table class="mini-table">
                             <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
@@ -598,7 +598,10 @@
             c.innerHTML = "";
             for(let i=1; i<=14; i++) {
                 let badgeClass = (i === 5 || i === 6) ? "badge-pouch" : "badge-club";
-                let typeName = (i === 5 || i === 6) ? "POUCHCAN" : "CLUBCAN";
+                
+                // --- PERUBAHAN DI SINI: MENGGANTI POUCHCAN MENJADI ROUNDCAN ---
+                let typeName = (i === 5 || i === 6) ? "ROUNDCAN" : "CLUBCAN";
+                
                 c.innerHTML += `
                 <div class="card">
                     <div class="card-header">
@@ -756,7 +759,8 @@
             b.innerHTML = "";
             if(snap.exists()) {
                 Object.values(snap.val()).reverse().forEach(h => {
-                    let clubInfo = h.detail ? `<span style='color:var(--primary)'>Club: ${h.detail.club}</span> | <span style='color:var(--purple)'>Pouch: ${h.detail.pouch}</span>` : '-';
+                
+                    let clubInfo = h.detail ? `<span style='color:var(--primary)'>Club: ${h.detail.club}</span> | <span style='color:var(--purple)'>Round: ${h.detail.pouch}</span>` : '-';
                     let totalShow = h.grandTotal ? h.grandTotal : h.total;
                     b.innerHTML += `<tr>
                         <td style="padding:15px; font-family:'JetBrains Mono'; border-bottom:1px solid #334155;">${h.time}</td>
