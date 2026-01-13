@@ -573,7 +573,7 @@
         // --- ANIMASIKAN JUGA TOTAL PRODUCTION ---
         const elTotal = document.getElementById("total");
         const currTotal = parseInt(elTotal.innerText.replace(/[^0-9]/g, '')) || 0;
-        if(currTotal !== final) animateValue(elTotal, currTotal, final, 1000);
+        if(currTotal !== final) animateValue(elTotal, currTotal, final, 500);
         // ----------------------------------------
 
         document.getElementById("clock").innerText = new Date().toLocaleString('id-ID');
