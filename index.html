@@ -531,58 +531,68 @@
             });
         }
 
-       function updateUI() {
-        if(!globalStartTime) return;
-        const mins = Math.max(0, Date.now() - globalStartTime) / 60000;
-        let gTot=0, cAct=0, cTeorythical=0, pAct=0, rTeorythical=0;
-
-        // Loop sampai 15
-        for(let i=1; i<=15; i++) {
-            if(i === 13) continue;
-
-            const act = latestCounter[`L${i}`] || 0;
-            const teorythical = Math.floor(rates[i-1] * mins);
-            const eff = teorythical>0 ? ((act/teorythical)*100).toFixed(1)+'%' : '0%';
-            const isP = (i===5||i===6);
+        // --- FUNGSI UPDATE UI (DIPERBAIKI: MENGHAPUS FUNGSI ANIMASI YG HILANG) ---
+        function updateUI() {
+            if (!globalStartTime) return;
+            let sumClubAct = 0, sumClubPred = 0;
+            let sumPouchAct = 0, sumPouchPred = 0;
             
-            if(isP) { pAct+=act; rTeorythical+=teorythical; } else { cAct+=act; cTeorythical+=teorythical; }
-            
-            const el = document.getElementById(`L${i}`);
-            if(el) {
-                // --- PERUBAHAN DISINI (ANIMASI) ---
-                // 1. Ambil nilai lama yang sedang tampil di layar (hapus koma/titik ribuan)
-                const currentDisplayed = parseInt(el.innerText.replace(/[^0-9]/g, '')) || 0;
+            const now = Date.now();
+            const minutesElapsed = Math.max(0, (now - globalStartTime) / 60000);
+
+            // Loop 1..15, skip 13
+            for (let i = 1; i <= 15; i++) {
+                if(i === 13) continue; // SKIP LINE 13
+
+                const actual = latestCounter[`L${i}`] || 0;
+                // Hitung Theoretical: 70 CPM * Menit Berjalan
+                const prediction = Math.floor(rates[i-1] * minutesElapsed);
                 
-                // 2. Jika nilai baru beda dengan nilai lama, jalankan animasi
-                if (currentDisplayed !== act) {
-                    // Durasi 1000ms (1 detik) agar gerakan terlihat smooth sesuai ritme kirim data ESP32
-                    animateValue(el, currentDisplayed, act, 500);
-                }
-                // ----------------------------------
+                let eff = prediction > 0 ? ((actual / prediction) * 100).toFixed(0) : 0;
+                if(eff > 100) eff = 100;
 
-                document.getElementById(`P${i}`).innerText = teorythical.toLocaleString(); 
-                const eEl = document.getElementById(`E${i}`); 
-                eEl.innerText = eff;
-                eEl.style.color = parseFloat(eff)>=90 ? getVar('--success') : parseFloat(eff)>=70 ? getVar('--warning') : getVar('--danger');
+                const elActual = document.getElementById(`L${i}`);
+                if (elActual) {
+                    elActual.innerText = actual;
+                    document.getElementById(`P${i}`).innerText = prediction.toLocaleString(); // Tampilkan Theoretical
+                    
+                    const elEff = document.getElementById(`E${i}`);
+                    elEff.innerText = eff + '%';
+                    
+                    // Warna Efficiency
+                    if(eff >= 90) elEff.style.color = '#4ade80'; // Hijau
+                    else if(eff >= 70) elEff.style.color = '#facc15'; // Kuning
+                    else elEff.style.color = '#f87171'; // Merah
+                }
+
+                if(i === 5 || i === 6) {
+                    sumPouchAct += actual;
+                    sumPouchPred += prediction;
+                } else {
+                    sumClubAct += actual;
+                    sumClubPred += prediction;
+                }
             }
-            gTot+=act;
+
+            // Update Kartu Total
+            document.getElementById("clubActual").innerText = sumClubAct.toLocaleString();
+            document.getElementById("clubPredict").innerText = sumClubPred.toLocaleString();
+            let clubEff = sumClubPred > 0 ? ((sumClubAct / sumClubPred) * 100).toFixed(0) : 0;
+            if(clubEff > 100) clubEff = 100;
+            document.getElementById("clubEff").innerText = clubEff + "%";
+
+            document.getElementById("pouchActual").innerText = sumPouchAct.toLocaleString();
+            document.getElementById("pouchPredict").innerText = sumPouchPred.toLocaleString();
+            let pouchEff = sumPouchPred > 0 ? ((sumPouchAct / sumPouchPred) * 100).toFixed(0) : 0;
+            if(pouchEff > 100) pouchEff = 100;
+            document.getElementById("pouchEff").innerText = pouchEff + "%";
+            
+            const grandTotal = sumClubAct + sumPouchAct;
+            document.getElementById("grandTotal").innerText = grandTotal.toLocaleString();
+            
+            if(prodChart && currentChartMode === 'daily') updateRealtimeChart(grandTotal);
         }
 
-        const final = gTot + manualOffset;
-        
-        // --- ANIMASIKAN JUGA TOTAL PRODUCTION ---
-        const elTotal = document.getElementById("total");
-        const currTotal = parseInt(elTotal.innerText.replace(/[^0-9]/g, '')) || 0;
-        if(currTotal !== final) animateValue(elTotal, currTotal, final, 1000);
-        // ----------------------------------------
-
-        document.getElementById("clock").innerText = new Date().toLocaleString('id-ID');
-        
-        // Update Summary (Bisa dianimasikan juga jika mau, contoh di bawah pakai text biasa agar ringan)
-        updSum("totalClub", cAct, cTeorythical); 
-        updSum("totalRound", pAct, rTeorythical); 
-        updSum("grandTotal", final, cTeorythical+rTeorythical);
-    }
         function connectMQTT() {
             const client = mqtt.connect(`wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`, {
                 username: mqttConfig.username,
@@ -592,6 +602,7 @@
 
             client.on("connect", () => { 
                 window.mqttClient = client; 
+                // Subscribe cuma sampai Machine 07
                 for(let i=1; i<=7; i++) client.subscribe(`${mqttConfig.topicBase}/machine0${i}/counter`);
             });
 
@@ -785,30 +796,22 @@
             }
         }
 
-        // ==========================================
-        //  FUNGSI DOWNLOAD EXCEL ASLI (.XLSX)
-        //  MENGGUNAKAN LIBRARY SHEETJS (XLSX.JS)
-        // ==========================================
         window.downloadRealExcel = async () => {
             const snap = await get(ref(database, 'history'));
             if (!snap.exists()) return alert("Tidak ada data history untuk didownload!");
 
-            // 1. SIAPKAN DATA
             const dataRaw = Object.values(snap.val());
             const dataSheet = [];
 
             // Header Kolom
             dataSheet.push(["WAKTU & TANGGAL", "TOTAL CLUBCAN", "TOTAL ROUNDCAN", "GRAND TOTAL"]);
 
-            // Helper untuk membersihkan angka (hapus koma/titik ribuan lalu jadi number)
             const parseNum = (str) => {
                 if(!str) return 0;
-                // Hapus semua karakter yang bukan angka
                 const clean = str.toString().replace(/\D/g, ''); 
                 return parseInt(clean) || 0;
             };
 
-            // Masukkan data baris per baris
             dataRaw.forEach(row => {
                 dataSheet.push([
                     row.time || "-", 
@@ -818,25 +821,20 @@
                 ]);
             });
 
-            // 2. BUAT WORKBOOK & WORKSHEET
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(dataSheet);
 
-            // 3. ATUR LEBAR KOLOM (Supaya tidak sempit/####)
             ws['!cols'] = [
-                { wch: 25 }, // Kolom Waktu
-                { wch: 20 }, // Kolom Clubcan
-                { wch: 20 }, // Kolom Roundcan
-                { wch: 20 }  // Kolom Grand Total
+                { wch: 25 }, 
+                { wch: 20 }, 
+                { wch: 20 }, 
+                { wch: 20 }
             ];
 
-            // 4. FREEZE PANES (KUNCI BARIS PERTAMA)
-            // state: frozen, xSplit: 0, ySplit: 1 (Baris 1 diam)
             ws['!views'] = [
                 { state: 'frozen', xSplit: 0, ySplit: 1 }
             ];
 
-            // 5. SIMPAN FILE SEBAGAI .XLSX ASLI
             XLSX.utils.book_append_sheet(wb, ws, "Produksi");
             const dateStr = new Date().toISOString().slice(0,10);
             XLSX.writeFile(wb, `Produksi_PHI_${dateStr}.xlsx`);
