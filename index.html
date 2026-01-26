@@ -39,7 +39,6 @@
         }
 
         /* --- ACCESS CONTROL STYLES (VIEW MODE) --- */
-        /* Class ini akan ditambahkan ke Body jika login sebagai Viewer */
         body.mode-view .access-control {
             display: none !important;
         }
@@ -1039,26 +1038,26 @@
         }
 
        function updateClock() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
-    
-    // Update tampilan jam
-    if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
-    if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
-    
-    // LOGIKA 1: Reset Tepat Waktu (Realtime)
-    if (now.getHours() === autoResetConfig.h && 
-        now.getMinutes() === autoResetConfig.m && 
-        now.getSeconds() === 0) { 
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
         
-        saveAndReset("ALL", now.getTime()); 
+        // Update tampilan jam
+        if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
+        if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
+        
+        // LOGIKA 1: Reset Tepat Waktu (Realtime)
+        if (now.getHours() === autoResetConfig.h && 
+            now.getMinutes() === autoResetConfig.m && 
+            now.getSeconds() === 0) { 
+            
+            saveAndReset("ALL", now.getTime()); 
+        }
+        // LOGIKA 2: Reset Susulan (Cek terus setiap detik)
+        // Tambahkan baris ini agar jika laptop bangun tidur, dia langsung sadar telat reset
+        else {
+            checkMissedReset(); 
+        }
     }
-    // LOGIKA 2: Reset Susulan (Cek terus setiap detik)
-    // Tambahkan baris ini agar jika laptop bangun tidur, dia langsung sadar telat reset
-    else {
-        checkMissedReset(); 
-    }
-}
 
         function syncGlobalStartTime() {
             const startRef = ref(database, 'config/productionStartTime');
@@ -1181,15 +1180,15 @@
         }
 
         // ==========================================
-        // UPDATE FUNGSI SAVE & RESET 
-        // Agar bisa menerima parameter Waktu Khusus (forcedTime)
+        // FUNGSI SAVE & RESET (SUDAH DIPERBAIKI)
+        // Agar Reset Per-Mesin tidak mereset semua
         // ==========================================
         async function saveAndReset(targetMachine, forcedTime = null) {
             const totalC = document.getElementById("clubActual").innerText;
             const totalP = document.getElementById("pouchActual").innerText;
             const grand = document.getElementById("grandTotal").innerText;
             
-            // Simpan history sebelum reset
+            // 1. Simpan history (Tetap sama)
             await push(ref(database, 'history'), { 
                 time: new Date().toLocaleString('id-ID'), 
                 grandTotal: grand, 
@@ -1200,30 +1199,75 @@
             });
 
             // Tentukan Waktu Mulai Baru
-            // Jika forcedTime ada (karena reset susulan), pakai itu. Jika tidak, pakai sekarang.
             const newStartTime = forcedTime ? forcedTime : Date.now();
+            const isAll = (targetMachine === "ALL");
 
-            await set(ref(database, 'config/productionStartTime'), newStartTime);
-            
+            // 2. Handle Global Start Time & Line Configs
             const updates = {};
-            lineConfigs = lineConfigs.map(cfg => ({ ...cfg, baseline: 0, checkpoint: newStartTime }));
-            lineConfigs.forEach((cfg, idx) => { updates[`${idx}`] = cfg; });
+
+            if (isAll) {
+                // KASUS RESET ALL: Reset Waktu Global & Semua Line
+                await set(ref(database, 'config/productionStartTime'), newStartTime);
+                globalStartTime = newStartTime; // Update variabel lokal
+
+                // Reset semua config
+                lineConfigs = lineConfigs.map(cfg => ({ ...cfg, baseline: 0, checkpoint: newStartTime }));
+                lineConfigs.forEach((cfg, idx) => { updates[`${idx}`] = cfg; });
+            } 
+            else {
+                // KASUS MESIN SPESIFIK: Hanya update config mesin tersebut
+                // Kita TIDAK merubah Global Start Time agar mesin lain tidak terganggu
+                const lineNum = parseInt(targetMachine.replace("machine", "")); // ambil angka (misal: 01 -> 1)
+                const idx = lineNum - 1; // Array config mulai dari 0
+
+                if (lineConfigs[idx]) {
+                    // Hanya reset baseline dan checkpoint mesin ini
+                    lineConfigs[idx] = { ...lineConfigs[idx], baseline: 0, checkpoint: newStartTime };
+                    updates[`${idx}`] = lineConfigs[idx];
+                }
+            }
+            // Push update config ke Firebase
             await set(ref(database, 'config/lineConfigs'), updates);
 
+
+            // 3. Handle OEE Data
             if(prodChart) {
-                oeeData = Array(16).fill(null).map(() => ({ workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 }));
                 const oeeUpdates = {};
-                oeeData.forEach((d, i) => { if(i!==13) oeeUpdates[i]=d; });
+                const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 };
+
+                if (isAll) {
+                    // Reset Semua OEE
+                    oeeData = Array(16).fill(null).map(() => ({...defaultOEE}));
+                    oeeData.forEach((d, i) => { if(i!==13) oeeUpdates[i]=d; });
+                } else {
+                    // Reset OEE Mesin Tertentu Saja
+                    const lineNum = parseInt(targetMachine.replace("machine", ""));
+                    oeeData[lineNum] = {...defaultOEE};
+                    oeeUpdates[lineNum] = oeeData[lineNum];
+                }
+                
                 await set(ref(database, 'config/oeeData'), oeeUpdates);
                 updateBarChart();
             }
 
+            // 4. Kirim Perintah MQTT
             if(window.mqttClient && window.mqttClient.connected) {
-                if(targetMachine === "ALL") { for(let i=1; i<=7; i++) window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); } 
-                else { window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); }
+                if(isAll) { 
+                    for(let i=1; i<=7; i++) window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
+                } 
+                else { 
+                    window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
+                }
             }
             
-            for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } 
+            // 5. Reset Counter Lokal (Tampilan Web)
+            if (isAll) {
+                for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } 
+            } else {
+                const lineNum = parseInt(targetMachine.replace("machine", ""));
+                latestCounter[`L${lineNum}`] = 0;
+            }
+
             updateUI(); 
         }
 
