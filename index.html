@@ -1180,15 +1180,14 @@
         }
 
         // ==========================================
-        // FUNGSI SAVE & RESET (SUDAH DIPERBAIKI)
-        // Agar Reset Per-Mesin tidak mereset semua
+        // FUNGSI SAVE & RESET (LOGIKA 1 MESIN = 2 LINE)
         // ==========================================
         async function saveAndReset(targetMachine, forcedTime = null) {
             const totalC = document.getElementById("clubActual").innerText;
             const totalP = document.getElementById("pouchActual").innerText;
             const grand = document.getElementById("grandTotal").innerText;
             
-            // 1. Simpan history (Tetap sama)
+            // 1. Simpan history
             await push(ref(database, 'history'), { 
                 time: new Date().toLocaleString('id-ID'), 
                 grandTotal: grand, 
@@ -1201,51 +1200,68 @@
             // Tentukan Waktu Mulai Baru
             const newStartTime = forcedTime ? forcedTime : Date.now();
             const isAll = (targetMachine === "ALL");
-
-            // 2. Handle Global Start Time & Line Configs
-            const updates = {};
-
+            
+            // Tentukan Line mana saja yang akan direset
+            let targetLines = [];
+            
             if (isAll) {
-                // KASUS RESET ALL: Reset Waktu Global & Semua Line
-                await set(ref(database, 'config/productionStartTime'), newStartTime);
-                globalStartTime = newStartTime; // Update variabel lokal
-
-                // Reset semua config
-                lineConfigs = lineConfigs.map(cfg => ({ ...cfg, baseline: 0, checkpoint: newStartTime }));
-                lineConfigs.forEach((cfg, idx) => { updates[`${idx}`] = cfg; });
-            } 
-            else {
-                // KASUS MESIN SPESIFIK: Hanya update config mesin tersebut
-                // Kita TIDAK merubah Global Start Time agar mesin lain tidak terganggu
-                const lineNum = parseInt(targetMachine.replace("machine", "")); // ambil angka (misal: 01 -> 1)
-                const idx = lineNum - 1; // Array config mulai dari 0
-
-                if (lineConfigs[idx]) {
-                    // Hanya reset baseline dan checkpoint mesin ini
-                    lineConfigs[idx] = { ...lineConfigs[idx], baseline: 0, checkpoint: newStartTime };
-                    updates[`${idx}`] = lineConfigs[idx];
+                // Semua Line 1-15 (kecuali 13)
+                for(let i=1; i<=15; i++) { if(i !== 13) targetLines.push(i); }
+            } else {
+                // Reset per Mesin (1 Mesin = 2 Line)
+                const machineNum = parseInt(targetMachine.replace("machine", "")); // Ambil angka mesin (1-7)
+                
+                // Rumus: Mesin N mengontrol Line (N*2)-1 dan (N*2)
+                // Contoh Mesin 1: Line 1 & 2
+                // Contoh Mesin 7: Line 13 (Skip) & 14 -> Sebenarnya mappingnya Line 14 & 15
+                
+                if (machineNum === 7) {
+                     // Khusus Mesin 7 karena Line 13 tidak ada, dia handle Line 14 & 15
+                     targetLines = [14, 15];
+                } else {
+                     const lineA = (machineNum * 2) - 1;
+                     const lineB = (machineNum * 2);
+                     targetLines = [lineA, lineB];
                 }
             }
-            // Push update config ke Firebase
-            await set(ref(database, 'config/lineConfigs'), updates);
 
+            // 2. Update Config (Theoretical)
+            const updates = {};
+            const oeeUpdates = {};
+            const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 };
 
-            // 3. Handle OEE Data
-            if(prodChart) {
-                const oeeUpdates = {};
-                const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 };
+            if (isAll) {
+                // Update Global Time & Reset Semua
+                await set(ref(database, 'config/productionStartTime'), newStartTime);
+                globalStartTime = newStartTime; 
+                lineConfigs = lineConfigs.map(cfg => ({ ...cfg, baseline: 0, checkpoint: newStartTime }));
+                lineConfigs.forEach((cfg, idx) => { updates[`${idx}`] = cfg; });
+                
+                // Reset OEE Semua
+                oeeData = Array(16).fill(null).map(() => ({...defaultOEE}));
+                oeeData.forEach((d, i) => { if(i!==13) oeeUpdates[i]=d; });
 
-                if (isAll) {
-                    // Reset Semua OEE
-                    oeeData = Array(16).fill(null).map(() => ({...defaultOEE}));
-                    oeeData.forEach((d, i) => { if(i!==13) oeeUpdates[i]=d; });
-                } else {
-                    // Reset OEE Mesin Tertentu Saja
-                    const lineNum = parseInt(targetMachine.replace("machine", ""));
+            } else {
+                // Update Hanya Line Terkait
+                targetLines.forEach(lineNum => {
+                    const idx = lineNum - 1; // Array index 0-based
+                    if (lineConfigs[idx]) {
+                        lineConfigs[idx] = { ...lineConfigs[idx], baseline: 0, checkpoint: newStartTime };
+                        updates[`${idx}`] = lineConfigs[idx];
+                    }
+                    
+                    // Reset OEE Line Terkait
                     oeeData[lineNum] = {...defaultOEE};
                     oeeUpdates[lineNum] = oeeData[lineNum];
-                }
-                
+                    
+                    // Reset Tampilan Web Counter
+                    latestCounter[`L${lineNum}`] = 0;
+                });
+            }
+
+            // Push Updates ke Firebase
+            await set(ref(database, 'config/lineConfigs'), updates);
+            if(prodChart) {
                 await set(ref(database, 'config/oeeData'), oeeUpdates);
                 updateBarChart();
             }
@@ -1256,16 +1272,14 @@
                     for(let i=1; i<=7; i++) window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
                 } 
                 else { 
+                    // Kirim ke Topik Mesin (Mesin akan mereset kedua linenya sendiri secara hardware/firmware)
                     window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
                 }
             }
             
-            // 5. Reset Counter Lokal (Tampilan Web)
+            // 5. Reset Counter Lokal (Tampilan Web - All Case)
             if (isAll) {
                 for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } 
-            } else {
-                const lineNum = parseInt(targetMachine.replace("machine", ""));
-                latestCounter[`L${lineNum}`] = 0;
             }
 
             updateUI(); 
