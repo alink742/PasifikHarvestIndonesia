@@ -1038,17 +1038,27 @@
             }
         }
 
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
-            if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
-            if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
-            
-            // Cek detik 0 untuk reset realtime (jika laptop nyala pas jamnya)
-            if (now.getHours() === autoResetConfig.h && now.getMinutes() === autoResetConfig.m && now.getSeconds() === 0) { 
-                saveAndReset("ALL", now.getTime()); 
-            }
-        }
+       function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
+    
+    // Update tampilan jam
+    if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
+    if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
+    
+    // LOGIKA 1: Reset Tepat Waktu (Realtime)
+    if (now.getHours() === autoResetConfig.h && 
+        now.getMinutes() === autoResetConfig.m && 
+        now.getSeconds() === 0) { 
+        
+        saveAndReset("ALL", now.getTime()); 
+    }
+    // LOGIKA 2: Reset Susulan (Cek terus setiap detik)
+    // Tambahkan baris ini agar jika laptop bangun tidur, dia langsung sadar telat reset
+    else {
+        checkMissedReset(); 
+    }
+}
 
         function syncGlobalStartTime() {
             const startRef = ref(database, 'config/productionStartTime');
