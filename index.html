@@ -1126,7 +1126,7 @@
             updateTotals();
         }
 
-        function updateTotals() {
+       function updateTotals() {
             let sumClubAct = 0, sumClubPred = 0;
             let sumPouchAct = 0, sumPouchPred = 0;
             for (let i = 1; i <= 15; i++) {
@@ -1135,18 +1135,28 @@
                 const prediction = calculateTheoretical(i);
                 if(i === 5 || i === 6) { sumPouchAct += actual; sumPouchPred += prediction; } else { sumClubAct += actual; sumClubPred += prediction; }
             }
-            document.getElementById("clubActual").innerText = sumClubAct.toLocaleString();
-            document.getElementById("clubPredict").innerText = sumClubPred.toLocaleString();
+            
+            // PERUBAHAN DISINI: Tambahkan 'id-ID' di dalam kurung toLocaleString
+            document.getElementById("clubActual").innerText = sumClubAct.toLocaleString('id-ID');
+            document.getElementById("clubPredict").innerText = sumClubPred.toLocaleString('id-ID');
+            
             let clubEff = sumClubPred > 0 ? ((sumClubAct / sumClubPred) * 100).toFixed(0) : 0;
             if(clubEff > 100) clubEff = 100;
             document.getElementById("clubEff").innerText = clubEff + "%";
-            document.getElementById("pouchActual").innerText = sumPouchAct.toLocaleString();
-            document.getElementById("pouchPredict").innerText = sumPouchPred.toLocaleString();
+            
+            // PERUBAHAN DISINI: Tambahkan 'id-ID'
+            document.getElementById("pouchActual").innerText = sumPouchAct.toLocaleString('id-ID');
+            document.getElementById("pouchPredict").innerText = sumPouchPred.toLocaleString('id-ID');
+            
             let pouchEff = sumPouchPred > 0 ? ((sumPouchAct / sumPouchPred) * 100).toFixed(0) : 0;
             if(pouchEff > 100) pouchEff = 100;
             document.getElementById("pouchEff").innerText = pouchEff + "%";
+            
             const grandTotal = sumClubAct + sumPouchAct;
-            document.getElementById("grandTotal").innerText = grandTotal.toLocaleString();
+            
+            // PERUBAHAN DISINI: Tambahkan 'id-ID'
+            document.getElementById("grandTotal").innerText = grandTotal.toLocaleString('id-ID');
+            
             if(prodChart) updateBarChart();
         }
 
