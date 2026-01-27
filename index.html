@@ -1106,7 +1106,7 @@
             return (netTheoretical < 0) ? 0 : netTheoretical;
         }
 
-        function updateSpecificLine(lineIndex) {
+       function updateSpecificLine(lineIndex) {
             const actual = latestCounter[`L${lineIndex}`] || 0;
             const prediction = calculateTheoretical(lineIndex);
             
@@ -1115,8 +1115,10 @@
             
             const elActual = document.getElementById(`L${lineIndex}`);
             if (elActual) {
-                elActual.innerText = actual; 
-                document.getElementById(`P${lineIndex}`).innerText = prediction.toLocaleString();
+                // PERUBAHAN DISINI: Tambahkan .toLocaleString('id-ID')
+                elActual.innerText = Number(actual).toLocaleString('id-ID'); 
+                document.getElementById(`P${lineIndex}`).innerText = Number(prediction).toLocaleString('id-ID');
+                
                 const elEff = document.getElementById(`E${lineIndex}`);
                 elEff.innerText = eff + '%';
                 if(eff >= 90) elEff.style.color = '#4ade80';
@@ -1125,7 +1127,6 @@
             }
             updateTotals();
         }
-
        function updateTotals() {
             let sumClubAct = 0, sumClubPred = 0;
             let sumPouchAct = 0, sumPouchPred = 0;
