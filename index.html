@@ -38,10 +38,7 @@
             overflow-x: hidden; padding-bottom: 70px; 
         }
 
-        /* --- ACCESS CONTROL STYLES (VIEW MODE) --- */
-        body.mode-view .access-control {
-            display: none !important;
-        }
+        body.mode-view .access-control { display: none !important; }
 
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -100,7 +97,6 @@
         /* --- LAYOUT UTAMA --- */
         .container { padding: 30px; max-width: 1600px; margin: 0 auto; }
         
-        /* Default: Hide sections managed by JS */
         #section-totals, #section-lines, #section-chart, #section-oee-grid, #section-oee-detail { display: none; } 
 
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 35px; }
@@ -136,15 +132,13 @@
         /* Chart */
         .chart-container { background: var(--card-dash); padding: 25px; border-radius: 6px; border: 1px solid var(--border); margin-top: 20px; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
-        /* --- CHART WRAPPER (SCROLLABLE ON MOBILE) --- */
         .canvas-wrapper { position: relative; height: 350px; width: 100%; }
-        .chart-scroll-box { width: 100%; height: 100%; } /* Default Desktop */
+        .chart-scroll-box { width: 100%; height: 100%; }
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { white-space: nowrap; }
 
-        /* --- OEE STYLES (SELECTOR & FORM) --- */
+        /* OEE STYLES */
         .oee-selector-card {
             cursor: pointer; position: relative; display: flex; align-items: center; justify-content: space-between;
             background: var(--card-dash); padding: 20px; border-radius: 6px; border: 1px solid var(--border); transition: 0.2s;
@@ -152,7 +146,6 @@
         .oee-selector-card:hover { border-color: var(--purple); background: #262c3d; }
         .oee-selector-card .arrow { font-size: 1.2rem; color: #94a3b8; }
 
-        /* OEE Detail Form */
         .oee-detail-container { max-width: 800px; margin: 0 auto; }
         .oee-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .btn-back { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
@@ -160,7 +153,6 @@
 
         .oee-form-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; }
         .oee-input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        
         .oee-field { display: flex; flex-direction: column; gap: 6px; }
         .oee-label { font-size: 0.75rem; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
         .oee-input {
@@ -178,7 +170,7 @@
         .summary-box h4 { margin: 0; color: #94a3b8; font-size: 0.75rem; margin-bottom: 5px; }
         .summary-box .val { font-family: 'JetBrains Mono'; font-size: 1.8rem; font-weight: 800; color: white; }
 
-        /* --- MODAL (POPUP) --- */
+        /* MODAL */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); z-index: 2000;
@@ -189,20 +181,11 @@
             width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             max-height: 85vh; overflow-y: auto; 
         }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .modal-title { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: white; margin: 0; }
         .close-btn { background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
         
-        /* CONFIG SPEED GRID (DESKTOP) */
-        .speed-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 15px; 
-        }
-        
+        .speed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid #334155;}
         .input-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .label-line { color: white; font-weight: 700; font-family: 'JetBrains Mono'; font-size: 0.9rem; }
@@ -216,7 +199,6 @@
         .btn-modal-save { background: var(--warning); color: #0f172a; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .btn-modal-cancel { background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        /* MODAL WIDE FOR DESKTOP */
         @media (min-width: 769px) { .modal-card { width: 1000px; max-width: 95%; } }
 
         /* Time Picker */
@@ -225,7 +207,7 @@
         .time-input-block input { background: #0f172a; border: 2px solid var(--primary); color: white; padding: 15px; border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 2rem; text-align: center; font-weight: bold; width: 80px; }
         .time-sep { font-size: 2rem; font-weight: bold; padding-top: 15px; color: #64748b; }
 
-        /* --- MEDIA QUERY MOBILE (MAX 768px) --- */
+        /* --- MOBILE --- */
         @media (max-width: 768px) {
             header {
                 position: fixed; top: 0; left: 0; width: 100%;
@@ -257,7 +239,6 @@
             }
             .mobile-menu-dropdown select { background: #0f172a; margin: 0; text-transform: none; }
             
-            /* --- BOTTOM NAV UPDATED (4 ITEMS) --- */
             .bottom-nav {
                 display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
                 height: 65px; background: var(--wa-tab); border-top: 1px solid #334155;
@@ -266,9 +247,7 @@
             .nav-item {
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 color: #94a3b8; font-size: 0.7rem; font-weight: 600; gap: 4px; 
-                width: 25%; /* Balanced 4 items */
-                height: 100%;
-                cursor: pointer; transition: 0.2s;
+                width: 25%; height: 100%; cursor: pointer; transition: 0.2s;
             }
             .nav-item.active { color: var(--primary); border-top: 3px solid var(--primary); background: rgba(56, 189, 248, 0.05); }
             .nav-icon { width: 22px; height: 22px; fill: currentColor; }
@@ -312,7 +291,6 @@
             .chart-filters { display: flex; justify-content: space-between; gap: 5px; }
             .chart-filters button { flex: 1; margin: 0; padding: 6px 0; font-size: 0.7rem; text-align: center; }
             
-            /* --- MOBILE OEE DETAIL FIX (SMALL & COMPACT) --- */
             .oee-detail-header h3 { font-size: 1rem; }
             .btn-back { padding: 8px 12px; font-size: 0.8rem; }
             .oee-form-card { padding: 15px; } 
@@ -322,7 +300,6 @@
             .oee-summary-bar { gap: 10px; padding-top: 15px; margin-top: 15px; }
             .summary-box .val { font-size: 1.4rem; }
             
-            /* Compact Modal Grid Mobile */
             .modal-card { width: 95%; max-height: 90vh; padding: 15px; }
             .speed-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .input-group { padding: 5px; gap: 2px; }
@@ -331,17 +308,8 @@
             .label-type { font-size: 0.5rem; padding: 1px 4px; margin-top: 2px; display: inline-block; }
             .input-group input { padding: 2px; font-size: 1rem; height: 35px; width: 100%; }
             
-            /* --- MOBILE CHART SCROLL (FIXED) --- */
-            .canvas-wrapper {
-                overflow-x: auto; /* Allow Scroll */
-                padding-bottom: 10px;
-            }
-            .chart-scroll-box {
-                /* Make wider than screen to force scroll */
-                width: 150%; 
-                min-width: 600px; 
-                height: 300px;
-            }
+            .canvas-wrapper { overflow-x: auto; padding-bottom: 10px; }
+            .chart-scroll-box { width: 150%; min-width: 600px; height: 300px; }
         }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -359,10 +327,6 @@
             <input id="password" class="login-input" type="password" placeholder="Password">
             <button id="btnLogin" class="login-btn" onclick="doLogin()">ACCESS DASHBOARD</button>
             <p id="error" style="color:#ef4444; margin-top:15px; font-weight:600;"></p>
-            
-            <div style="margin-top:20px; font-size:0.75rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:10px;">
-                
-            </div>
         </div>
     </div>
 
@@ -434,43 +398,47 @@
 
         <div class="container" id="viewDashboard">
             
-            <div id="section-totals">
-                <div class="summary-grid">
-                    <div class="card" style="border-top: 4px solid var(--primary);">
-                        <div class="card-header">
-                            <div><span class="card-title" style="color:var(--primary)">TOTAL CLUBCAN</span><span class="badge badge-club">LINES 01-04, 07-12, 14-15</span></div>
-                        </div>
-                        <table class="mini-table">
-                            <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
-                            <tr><th>Actual</th><th style="text-align:center">THEORITICAL</th><th style="text-align:right">Eff %</th></tr>
-                            <tr><td class="data-val" id="clubActual">0</td><td class="data-val" style="text-align:center" id="clubPredict">0</td><td class="data-val" style="text-align:right" id="clubEff">0%</td></tr>
-                        </table>
+           <div id="section-totals">
+    <div class="summary-grid">
+        <div class="card" style="border-top: 4px solid var(--primary);">
+            <div class="card-header">
+                <div>
+                    <span class="card-title" style="color:var(--primary)">TOTAL CLUBCAN</span>
                     </div>
-
-                    <div class="card" style="border-top: 4px solid var(--purple);">
-                        <div class="card-header">
-                            <div><span class="card-title" style="color:var(--purple)">TOTAL ROUNDCAN</span><span class="badge badge-pouch">LINE 05 & 06</span></div>
-                        </div>
-                        <table class="mini-table">
-                            <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
-                            <tr><th>Actual</th><th style="text-align:center">THEORITICAL</th><th style="text-align:right">Eff %</th></tr>
-                            <tr><td class="data-val" id="pouchActual">0</td><td class="data-val" style="text-align:center" id="pouchPredict">0</td><td class="data-val" style="text-align:right" id="pouchEff">0%</td></tr>
-                        </table>
-                    </div>
-
-                    <div class="grand-card">
-                        <div class="card-header">
-                            <div><span class="grand-label">GRAND TOTAL</span><span class="badge" style="background:rgba(250,204,21,0.2); color:#facc15; border:1px solid rgba(250,204,21,0.4);">PRODUCTION</span></div>
-                        </div>
-                        <table class="mini-table">
-                             <tr><td colspan="3" class="grand-val" id="grandTotal" style="text-align:left;">0</td></tr>
-                        </table>
-                        <div class="reset-control">
-                            AUTO RESET: <span id="displayAutoReset" style="margin-left:5px">06:00</span>
-                        </div>
-                    </div>
-                </div>
             </div>
+            <table class="mini-table">
+                <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
+                <tr><th>Actual</th><th style="text-align:center">THEORETICAL</th><th style="text-align:right">Eff %</th></tr>
+                <tr><td class="data-val" id="clubActual">0</td><td class="data-val" style="text-align:center" id="clubPredict">0</td><td class="data-val" style="text-align:right" id="clubEff">0%</td></tr>
+            </table>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--purple);">
+            <div class="card-header">
+                <div>
+                    <span class="card-title" style="color:var(--purple)">TOTAL ROUNDCAN</span>
+                    </div>
+            </div>
+            <table class="mini-table">
+                <colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup>
+                <tr><th>Actual</th><th style="text-align:center">THEORETICAL</th><th style="text-align:right">Eff %</th></tr>
+                <tr><td class="data-val" id="pouchActual">0</td><td class="data-val" style="text-align:center" id="pouchPredict">0</td><td class="data-val" style="text-align:right" id="pouchEff">0%</td></tr>
+            </table>
+        </div>
+
+        <div class="grand-card">
+            <div class="card-header">
+                <div><span class="grand-label">GRAND TOTAL</span><span class="badge" style="background:rgba(250,204,21,0.2); color:#facc15; border:1px solid rgba(250,204,21,0.4);">PRODUCTION</span></div>
+            </div>
+            <table class="mini-table">
+                 <tr><td colspan="3" class="grand-val" id="grandTotal" style="text-align:left;">0</td></tr>
+            </table>
+            <div class="reset-control">
+                AUTO RESET: <span id="displayAutoReset" style="margin-left:5px">06:00</span>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div id="section-lines">
                 <div class="grid" id="cardsContainer"></div>
@@ -479,7 +447,7 @@
             <div id="section-chart">
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 style="margin:0; font-family:'JetBrains Mono'">OEE COMPOSITION (%)</h3>
+                        <h3 style="margin:0; font-family:'JetBrains Mono'">PRODUCTION: ACTUAL VS THEORETICAL</h3>
                     </div>
                     <div class="canvas-wrapper">
                         <div class="chart-scroll-box">
@@ -574,7 +542,7 @@
                         <tr style="border-bottom:1px solid #334155;">
                             <th style="padding:15px; text-align:left;">TIMESTAMP</th>
                             <th style="padding:15px; text-align:center;">TOTAL</th>
-                            <th style="padding:15px; text-align:left;">DETAILS</th>
+                            <th style="padding:15px; text-align:left;">SUMMARY DETAILS</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody"></tbody>
@@ -682,8 +650,20 @@
         let currentOEEIndex = 1;
 
         let prodChart = null;
-        // Default jam 6 pagi
         let autoResetConfig = { h: 6, m: 0 };
+
+        // --- ANTI MATI LISTRIK: SAVE LOCAL BACKUP ---
+        function saveLocalBackup() {
+            try {
+                localStorage.setItem('phi_counter_backup', JSON.stringify(latestCounter));
+                localStorage.setItem('phi_oee_backup', JSON.stringify(oeeData));
+                localStorage.setItem('phi_last_active', Date.now());
+                console.log("Local backup saved (Anti-Power Loss)");
+            } catch(e) { console.error("Backup failed", e); }
+        }
+
+        // Jalankan backup setiap 30 detik
+        setInterval(saveLocalBackup, 30000); 
 
         // --- NAVIGATION HELPERS ---
         window.switchMobileTab = (tabName, btnElement) => {
@@ -726,7 +706,6 @@
             const u = document.getElementById("username").value;
             const p = document.getElementById("password").value;
             
-            // --- LOGIC ROLE ---
             if(u === "admin" && p === "admin123") {
                 sessionStorage.setItem("login", "1");
                 sessionStorage.setItem("role", "operator"); // Full Akses
@@ -751,10 +730,9 @@
                 document.getElementById("loginPage").style.display = "none";
                 document.getElementById("dashboardPage").style.display = "block";
                 
-                // --- APPLY ROLE STYLES ---
                 const userRole = sessionStorage.getItem("role");
                 if(userRole === "viewer") {
-                    document.body.classList.add("mode-view"); // Class ini akan menyembunyikan elemen .access-control
+                    document.body.classList.add("mode-view");
                 }
 
                 const savedReset = localStorage.getItem("phi_autoreset");
@@ -774,11 +752,9 @@
                 
                 syncConfigRates(); 
                 initChart(); 
-                
-                // PENTING: Load Global Start Time lalu Cek Missed Reset
                 syncGlobalStartTime();
 
-                loadCache();
+                loadCache(); // Load Data (Priority: Firebase -> Local Backup)
                 loadOEEData(); 
                 connectMQTT();
                 setInterval(updateClock, 1000);
@@ -875,18 +851,25 @@
             const updates = {};
             updates[idx] = oeeData[idx];
             closeOEEDetail(); 
-            if(prodChart) updateBarChart();
             await set(ref(database, 'config/oeeData'), updates);
         };
 
         async function loadOEEData() {
+            // Cek Local Backup OEE dulu
+            const localOEE = localStorage.getItem('phi_oee_backup');
+            if(localOEE) {
+                try {
+                    const parsed = JSON.parse(localOEE);
+                    if(parsed) oeeData = parsed;
+                } catch(e){}
+            }
+
             const snap = await get(ref(database, 'config/oeeData'));
             if(snap.exists()) {
                 const data = snap.val();
                 data.forEach((d, i) => {
                     if(d && i !== 13) oeeData[i] = d;
                 });
-                if(prodChart) updateBarChart(); 
             }
         }
 
@@ -945,7 +928,6 @@
             localStorage.setItem("phi_autoreset", JSON.stringify(autoResetConfig));
             updateResetDisplay();
             closeResetModal();
-            // Cek langsung apakah harus reset sekarang
             checkMissedReset(); 
         }
 
@@ -983,7 +965,7 @@
             e.preventDefault();
             let nextIdx = currentIdx + 1;
             if (nextIdx === 13) nextIdx = 14; 
-            if (nextIdx > 15) nextIdx = 1;    
+            if (nextIdx > 15) nextIdx = 1;     
             const nextEl = document.getElementById(`inputSpeed_${nextIdx}`);
             if (nextEl) { nextEl.focus(); nextEl.select(); }
         };
@@ -1012,26 +994,16 @@
             if(close) closeSpeedModal(); 
         };
 
-        // ==========================================
-        // FITUR UTAMA: CHECK MISSED RESET
-        // ==========================================
         function checkMissedReset() {
-            if (!globalStartTime) return; // Belum load data
+            if (!globalStartTime) return; 
 
             const now = new Date();
-            
-            // Buat objek Date untuk jadwal reset HARI INI
             const scheduledResetToday = new Date();
             scheduledResetToday.setHours(autoResetConfig.h, autoResetConfig.m, 0, 0);
 
-            // Cek 1: Apakah sekarang SUDAH MELEWATI jam reset hari ini?
             if (now > scheduledResetToday) {
-                // Cek 2: Apakah start time yang tersimpan MASIH LEBIH KECIL dari jam reset hari ini?
-                // Artinya: Start time masih kemarin, padahal harusnya sudah reset tadi pagi.
                 if (new Date(globalStartTime) < scheduledResetToday) {
                     console.log("Auto Reset Terlewat! Melakukan Reset Susulan...");
-                    // Reset, tapi set start time ke JADWAL RESET (bukan now)
-                    // Agar hitungan theoretical akurat (misal buka jam 9, dihitung start jam 6)
                     saveAndReset("ALL", scheduledResetToday.getTime());
                 }
             }
@@ -1041,19 +1013,14 @@
         const now = new Date();
         const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
         
-        // Update tampilan jam
         if(document.getElementById("clock")) document.getElementById("clock").innerText = timeStr;
         if(document.getElementById("mobileClock")) document.getElementById("mobileClock").innerText = timeStr; 
         
-        // LOGIKA 1: Reset Tepat Waktu (Realtime)
         if (now.getHours() === autoResetConfig.h && 
             now.getMinutes() === autoResetConfig.m && 
             now.getSeconds() === 0) { 
-            
             saveAndReset("ALL", now.getTime()); 
         }
-        // LOGIKA 2: Reset Susulan (Cek terus setiap detik)
-        // Tambahkan baris ini agar jika laptop bangun tidur, dia langsung sadar telat reset
         else {
             checkMissedReset(); 
         }
@@ -1065,8 +1032,6 @@
                 if(snap.val()) { 
                     globalStartTime = snap.val(); 
                     lineConfigs.forEach(cfg => { if(!cfg.checkpoint) cfg.checkpoint = globalStartTime; }); 
-                    
-                    // SETELAH DAPAT DATA WAKTU, LANGSUNG CEK APAKAH PERLU RESET
                     checkMissedReset();
                 } 
                 else { 
@@ -1115,7 +1080,6 @@
             
             const elActual = document.getElementById(`L${lineIndex}`);
             if (elActual) {
-                // PERUBAHAN DISINI: Tambahkan .toLocaleString('id-ID')
                 elActual.innerText = Number(actual).toLocaleString('id-ID'); 
                 document.getElementById(`P${lineIndex}`).innerText = Number(prediction).toLocaleString('id-ID');
                 
@@ -1137,7 +1101,6 @@
                 if(i === 5 || i === 6) { sumPouchAct += actual; sumPouchPred += prediction; } else { sumClubAct += actual; sumClubPred += prediction; }
             }
             
-            // PERUBAHAN DISINI: Tambahkan 'id-ID' di dalam kurung toLocaleString
             document.getElementById("clubActual").innerText = sumClubAct.toLocaleString('id-ID');
             document.getElementById("clubPredict").innerText = sumClubPred.toLocaleString('id-ID');
             
@@ -1145,7 +1108,6 @@
             if(clubEff > 100) clubEff = 100;
             document.getElementById("clubEff").innerText = clubEff + "%";
             
-            // PERUBAHAN DISINI: Tambahkan 'id-ID'
             document.getElementById("pouchActual").innerText = sumPouchAct.toLocaleString('id-ID');
             document.getElementById("pouchPredict").innerText = sumPouchPred.toLocaleString('id-ID');
             
@@ -1155,7 +1117,6 @@
             
             const grandTotal = sumClubAct + sumPouchAct;
             
-            // PERUBAHAN DISINI: Tambahkan 'id-ID'
             document.getElementById("grandTotal").innerText = grandTotal.toLocaleString('id-ID');
             
             if(prodChart) updateBarChart();
@@ -1190,118 +1151,122 @@
             }
         }
 
-        // ==========================================
-        // FUNGSI SAVE & RESET (LOGIKA 1 MESIN = 2 LINE)
-        // ==========================================
+        // --- NEW SAVE & RESET LOGIC ---
         async function saveAndReset(targetMachine, forcedTime = null) {
-            const totalC = document.getElementById("clubActual").innerText;
-            const totalP = document.getElementById("pouchActual").innerText;
             const grand = document.getElementById("grandTotal").innerText;
             
-            // 1. Simpan history
+            // 1. SNAPSHOT DATA DETAIL
+            const lineSnapshot = {};
+            let totalTheoGlobal = 0;
+            
+            // Global OEE Accumulator
+            let globalOEE = {
+                workingTime: 0,
+                breakdown: 0,
+                downtime: 0, // Other Loss
+                totalLoss: 0
+            };
+
+            for(let i=1; i<=15; i++) {
+                if(i === 13) continue;
+                const act = latestCounter[`L${i}`] || 0;
+                const theo = calculateTheoretical(i); 
+                totalTheoGlobal += theo;
+                
+                let eff = 0;
+                if(theo > 0) eff = ((act / theo) * 100).toFixed(1);
+                
+                // OEE Calculation
+                const d = oeeData[i] || {};
+                const lineLoss = (d.extStop||0) + (d.planDowntime||0) + (d.trial||0) + (d.breakdown||0) + (d.speedLoss||0) + (d.minorStop||0);
+                
+                globalOEE.workingTime += (d.workingTime || 1440);
+                globalOEE.breakdown += (d.breakdown || 0);
+                globalOEE.downtime += (lineLoss - (d.breakdown || 0));
+                globalOEE.totalLoss += lineLoss;
+
+                lineSnapshot[`L${i}`] = {
+                    actual: act,
+                    theoretical: theo,
+                    efficiency: eff,
+                    oee: {...d} 
+                };
+            }
+
+            const totalActGlobal = parseInt(grand.replace(/\./g, '')) || 0;
+            let globalEff = 0;
+            if(totalTheoGlobal > 0) globalEff = ((totalActGlobal / totalTheoGlobal) * 100).toFixed(1);
+
+            // 2. SIMPAN KE FIREBASE
             await push(ref(database, 'history'), { 
                 time: new Date().toLocaleString('id-ID'), 
                 grandTotal: grand, 
-                detail: { club: totalC, pouch: totalP }, 
-                counter: {...latestCounter}, 
-                oee: {...oeeData}, 
+                grandTheoretical: totalTheoGlobal,
+                globalEfficiency: globalEff,
+                globalOEE: globalOEE,
+                lineDetails: lineSnapshot, 
                 resetType: targetMachine + (forcedTime ? " (AUTO CATCH-UP)" : "") 
             });
 
-            // Tentukan Waktu Mulai Baru
+            // --- RESET PROCESS ---
             const newStartTime = forcedTime ? forcedTime : Date.now();
             const isAll = (targetMachine === "ALL");
-            
-            // Tentukan Line mana saja yang akan direset
             let targetLines = [];
             
             if (isAll) {
-                // Semua Line 1-15 (kecuali 13)
                 for(let i=1; i<=15; i++) { if(i !== 13) targetLines.push(i); }
             } else {
-                // Reset per Mesin (1 Mesin = 2 Line)
-                const machineNum = parseInt(targetMachine.replace("machine", "")); // Ambil angka mesin (1-7)
-                
-                // Rumus: Mesin N mengontrol Line (N*2)-1 dan (N*2)
-                // Contoh Mesin 1: Line 1 & 2
-                // Contoh Mesin 7: Line 13 (Skip) & 14 -> Sebenarnya mappingnya Line 14 & 15
-                
-                if (machineNum === 7) {
-                     // Khusus Mesin 7 karena Line 13 tidak ada, dia handle Line 14 & 15
-                     targetLines = [14, 15];
-                } else {
-                     const lineA = (machineNum * 2) - 1;
-                     const lineB = (machineNum * 2);
-                     targetLines = [lineA, lineB];
-                }
+                const machineNum = parseInt(targetMachine.replace("machine", ""));
+                if (machineNum === 7) { targetLines = [14, 15]; } 
+                else { targetLines = [(machineNum * 2) - 1, (machineNum * 2)]; }
             }
 
-            // 2. Update Config (Theoretical)
             const updates = {};
             const oeeUpdates = {};
             const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 };
 
             if (isAll) {
-                // Update Global Time & Reset Semua
                 await set(ref(database, 'config/productionStartTime'), newStartTime);
                 globalStartTime = newStartTime; 
                 lineConfigs = lineConfigs.map(cfg => ({ ...cfg, baseline: 0, checkpoint: newStartTime }));
                 lineConfigs.forEach((cfg, idx) => { updates[`${idx}`] = cfg; });
-                
-                // Reset OEE Semua
                 oeeData = Array(16).fill(null).map(() => ({...defaultOEE}));
                 oeeData.forEach((d, i) => { if(i!==13) oeeUpdates[i]=d; });
-
             } else {
-                // Update Hanya Line Terkait
                 targetLines.forEach(lineNum => {
-                    const idx = lineNum - 1; // Array index 0-based
+                    const idx = lineNum - 1;
                     if (lineConfigs[idx]) {
                         lineConfigs[idx] = { ...lineConfigs[idx], baseline: 0, checkpoint: newStartTime };
                         updates[`${idx}`] = lineConfigs[idx];
                     }
-                    
-                    // Reset OEE Line Terkait
                     oeeData[lineNum] = {...defaultOEE};
                     oeeUpdates[lineNum] = oeeData[lineNum];
-                    
-                    // Reset Tampilan Web Counter
                     latestCounter[`L${lineNum}`] = 0;
                 });
             }
 
-            // Push Updates ke Firebase
             await set(ref(database, 'config/lineConfigs'), updates);
             if(prodChart) {
                 await set(ref(database, 'config/oeeData'), oeeUpdates);
                 updateBarChart();
             }
 
-            // 4. Kirim Perintah MQTT
             if(window.mqttClient && window.mqttClient.connected) {
                 if(isAll) { 
                     for(let i=1; i<=7; i++) window.mqttClient.publish(`${mqttConfig.topicBase}/machine0${i}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
-                } 
-                else { 
-                    // Kirim ke Topik Mesin (Mesin akan mereset kedua linenya sendiri secara hardware/firmware)
+                } else { 
                     window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
                 }
             }
             
-            // 5. Reset Counter Lokal (Tampilan Web - All Case)
-            if (isAll) {
-                for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } 
-            }
+            if (isAll) { for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } }
 
             updateUI(); 
         }
 
         window.manualSave = async (isAuto = false) => {
             if(isAuto || confirm("Simpan Data ke History?")) {
-                const totalC = document.getElementById("clubActual").innerText;
-                const totalP = document.getElementById("pouchActual").innerText;
-                const grand = document.getElementById("grandTotal").innerText;
-                await push(ref(database, 'history'), { time: new Date().toLocaleString('id-ID'), grandTotal: grand, detail: { club: totalC, pouch: totalP }, counter: {...latestCounter}, oee: {...oeeData}, type: "Manual Save" });
+                saveAndReset("MANUAL_SAVE_ONLY"); 
             }
         };
 
@@ -1312,106 +1277,305 @@
             if(confirm((m === 'all') ? "RESET SEMUA MESIN?" : `RESET ${m.toUpperCase()}?`)) { await saveAndReset((m === 'all') ? "ALL" : m); }
         };
 
-        async function loadCache() { const snap = await get(ref(database, 'lastCache')); if(snap.exists()) { const d = snap.val(); Object.keys(d).forEach(k => { if(d[k].counter) Object.assign(latestCounter, d[k].counter); }); } }
+        // --- UPDATED LOAD CACHE (RESTORE FROM LOCAL IF FIREBASE IS STALE) ---
+        async function loadCache() { 
+            // 1. Cek LocalStorage (Backup Anti Mati Listrik)
+            const localBackup = localStorage.getItem('phi_counter_backup');
+            if(localBackup) {
+                try {
+                    const parsedLocal = JSON.parse(localBackup);
+                    // Gunakan data lokal sementara sampai Firebase update
+                    Object.assign(latestCounter, parsedLocal);
+                    console.log("Restored from Local Backup");
+                } catch(e) {}
+            }
+
+            // 2. Cek Firebase (Server Backup)
+            const snap = await get(ref(database, 'lastCache')); 
+            if(snap.exists()) { 
+                const d = snap.val(); 
+                Object.keys(d).forEach(k => { 
+                    if(d[k].counter) Object.assign(latestCounter, d[k].counter); 
+                }); 
+            } 
+        }
         
-        window.initChart = () => {
-            Chart.register(ChartDataLabels);
-            const ctx = document.getElementById('productionChart').getContext('2d');
-            const labels = [];
-            for(let i=1; i<=15; i++) { if(i!==13) labels.push(`L${i.toString().padStart(2,'0')}`); }
+     window.initChart = () => {
+    Chart.register(ChartDataLabels);
+    const ctx = document.getElementById('productionChart').getContext('2d');
+    
+    const labels = [];
+    for(let i=1; i<=15; i++) { if(i!==13) labels.push(`L${i.toString().padStart(2,'0')}`); }
 
-            prodChart = new Chart(ctx, {
-                type: 'bar',
-                data: { 
-                    labels: labels, 
-                    datasets: [
-                        { 
-                            label: 'RUN TIME (%)', 
-                            data: [], 
-                            backgroundColor: '#4ade80', 
-                            borderRadius: 4,
-                            datalabels: {
-                                color: '#020617', 
-                                anchor: 'center',
-                                align: 'center',
-                                rotation: -90, 
-                                formatter: (value) => { return value > 0 ? value + '%' : ''; } 
-                            }
+    prodChart = new Chart(ctx, {
+        type: 'bar',
+        data: { 
+            labels: labels, 
+            rawActual: [],
+            rawTheo: [],
+            datasets: [
+                { 
+                    label: 'ACTUAL', 
+                    data: [], 
+                    backgroundColor: '#4ade80', 
+                    barPercentage: 0.7,
+                    categoryPercentage: 0.8,
+                    borderRadius: 4, 
+                    datalabels: {
+                        display: true,
+                        color: '#020617', 
+                        anchor: 'center',
+                        align: 'center',
+                        // Perintah: Tulisan atas ke bawah (vertikal)
+                        rotation: -90, 
+                        font: { 
+                            weight: '800', 
+                            family: "'JetBrains Mono'", 
+                            // Ukuran menyesuaikan agar tidak melewati grafik
+                            size: window.innerWidth < 768 ? 9 : 11 
                         },
-                        { 
-                            label: 'LOSS TIME (%)', 
-                            data: [], 
-                            backgroundColor: '#f87171', 
-                            borderRadius: 4,
-                            datalabels: {
-                                color: '#ffffff', 
-                                anchor: 'center',
-                                align: 'center',
-                                rotation: -90, 
-                                formatter: (value) => { return value > 0 ? value + '%' : ''; }
-                            }
+                        formatter: (value, context) => { 
+                            const rawVal = context.chart.data.rawActual[context.dataIndex];
+                            return rawVal > 0 ? rawVal.toLocaleString('id-ID') : ''; 
                         }
-                    ] 
+                    }
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { labels: { color: '#94a3b8', font:{family:"'JetBrains Mono'"} } },
-                        datalabels: {
-                            font: { weight: 'bold', family: "'JetBrains Mono'", size: 10 }
-                        }
-                    }, 
-                    scales: { 
-                        x: { 
-                            stacked: true, 
-                            grid: { display: false }, 
-                            ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono'" } } 
+                { 
+                    label: 'THEORETICAL', 
+                    data: [], 
+                    backgroundColor: '#f87171', 
+                    barPercentage: 0.7,
+                    categoryPercentage: 0.8,
+                    borderRadius: 4,
+                    datalabels: {
+                        display: true,
+                        color: '#ffffff', 
+                        anchor: 'center', 
+                        align: 'center',
+                        // Perintah: Tulisan atas ke bawah (vertikal)
+                        rotation: -90,
+                        font: { 
+                            weight: '800', 
+                            family: "'JetBrains Mono'", 
+                            size: window.innerWidth < 768 ? 9 : 11 
                         },
-                        y: { 
-                            stacked: true, 
-                            max: 100,
-                            grid: { color: '#334155' }, 
-                            ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono'" }, callback: (v)=>v+'%' } 
-                        } 
+                        formatter: (value, context) => {
+                            const rawTheo = context.chart.data.rawTheo[context.dataIndex];
+                            return rawTheo > 0 ? rawTheo.toLocaleString('id-ID') : ''; 
+                        }
+                    }
+                }
+            ] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            animation: false, 
+            plugins: { 
+                legend: { 
+                    display: true,
+                    labels: { color: '#94a3b8', font:{family:"'JetBrains Mono'"} } 
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }, 
+            scales: { 
+                x: { 
+                    stacked: true, 
+                    grid: { display: false }, 
+                    ticks: { 
+                        color: '#ffffff', 
+                        font: { family: "'JetBrains Mono'", size: 10, weight: 'bold' } 
                     } 
+                },
+                y: { 
+                    stacked: true, 
+                    min: 0,
+                    max: 100, 
+                    grid: { color: '#334155', drawBorder: false }, 
+                    ticks: { display: false } 
                 } 
-            });
-        };
-
+            } 
+        } 
+    });
+};
         function updateBarChart() {
             if (!prodChart) return;
-            const runData = [];
-            const lossData = [];
+            
+            const visualActualData = [];
+            const visualSisaData = []; 
+            const rawActualData = [];
+            const rawTheoData = [];
+            const newLabels = [];
+
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
-                const d = oeeData[i] || { workingTime: 1440, extStop:0, planDowntime:0, trial:0, breakdown:0, speedLoss:0, minorStop:0 };
-                let wt = d.workingTime;
-                if(!wt || wt <= 0) wt = 1440; 
-                const totalLoss = (d.extStop||0) + (d.planDowntime||0) + (d.trial||0) + (d.breakdown||0) + (d.speedLoss||0) + (d.minorStop||0);
-                let lossPct = (totalLoss / wt) * 100;
-                if(lossPct > 100) lossPct = 100;
-                let runPct = 100 - lossPct;
-                if(runPct < 0) runPct = 0;
-                runData.push(runPct.toFixed(1));
-                lossData.push(lossPct.toFixed(1));
+                
+                const act = latestCounter[`L${i}`] || 0;
+                const theo = calculateTheoretical(i);
+
+                rawActualData.push(act);
+                rawTheoData.push(theo);
+
+                let percentAct = 0;
+                if(theo > 0) percentAct = (act / theo) * 100;
+                if(percentAct > 100) percentAct = 100; 
+
+                let percentSisa = 100 - percentAct; 
+
+                visualActualData.push(percentAct);
+                visualSisaData.push(percentSisa);
+
+                let eff = 0;
+                if (theo > 0) eff = ((act / theo) * 100).toFixed(0);
+                const lineName = `L${i.toString().padStart(2,'0')}`;
+                newLabels.push([lineName, `Eff ${eff}%`]); 
             }
-            prodChart.data.datasets[0].data = runData;
-            prodChart.data.datasets[1].data = lossData;
+
+            prodChart.data.labels = newLabels;
+            prodChart.data.datasets[0].data = visualActualData;
+            prodChart.data.datasets[1].data = visualSisaData;
+            prodChart.data.rawActual = rawActualData;
+            prodChart.data.rawTheo = rawTheoData;
             prodChart.update();
         }
 
+        // --- UPDATED LOAD HISTORY (WEB VIEW - SIMPLE TOTAL ONLY) ---
         async function loadHistoryTable() {
-            const b = document.getElementById("historyTableBody"); b.innerHTML = "<tr><td colspan='3'>Loading data...</td></tr>"; const snap = await get(ref(database, 'history')); b.innerHTML = "";
-            if(snap.exists()) { Object.values(snap.val()).reverse().forEach(h => { let clubInfo = h.detail ? `<span style='color:var(--primary)'>Club: ${h.detail.club}</span> | <span style='color:var(--purple)'>Round: ${h.detail.pouch}</span>` : '-'; let totalShow = h.grandTotal ? h.grandTotal : h.total; b.innerHTML += `<tr><td style="padding:15px; font-family:'JetBrains Mono'; border-bottom:1px solid #334155;">${h.time}</td><td style="padding:15px; color:var(--success); font-weight:bold; font-family:'JetBrains Mono'; border-bottom:1px solid #334155; text-align:center;">${totalShow}</td><td style="padding:15px; font-size:0.85rem; border-bottom:1px solid #334155;">${clubInfo}</td></tr>`; }); } 
-            else { b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>Belum ada data history</td></tr>"; }
+            const b = document.getElementById("historyTableBody"); 
+            b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>Loading data...</td></tr>"; 
+            
+            const snap = await get(ref(database, 'history')); 
+            b.innerHTML = "";
+            
+            if(snap.exists()) { 
+                Object.values(snap.val()).reverse().forEach(h => { 
+                    let totalAct = h.grandTotal || h.total || 0;
+                    let totalTheo = h.grandTheoretical ? parseInt(h.grandTheoretical).toLocaleString('id-ID') : "-";
+                    let eff = h.globalEfficiency ? h.globalEfficiency : 0;
+                    
+                    let breakdown = h.globalOEE ? h.globalOEE.breakdown : 0;
+                    let otherLoss = h.globalOEE ? h.globalOEE.downtime : 0;
+
+                    let effColor = '#f87171'; 
+                    if(eff >= 90) effColor = '#4ade80'; 
+                    else if(eff >= 70) effColor = '#facc15'; 
+
+                    let summaryHTML = `
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; font-size:0.7rem; color:#cbd5e1;">
+                            <div>THEORETICAL</div>
+                            <div style="text-align:right; font-weight:bold; color:white;">${totalTheo}</div>
+                            
+                            <div>EFFICIENCY</div>
+                            <div style="text-align:right; font-weight:bold; color:${effColor};">${eff}%</div>
+                            
+                            <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px;">TOTAL BREAKDOWN</div>
+                            <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px; text-align:right; font-weight:bold; color:#f87171;">${breakdown} <span style="font-size:0.6rem">min</span></div>
+                            
+                            <div>OTHER LOSS</div>
+                            <div style="text-align:right; font-weight:bold; color:#facc15;">${otherLoss} <span style="font-size:0.6rem">min</span></div>
+                        </div>
+                    `;
+
+                    b.innerHTML += `
+                    <tr style="border-bottom:1px solid #334155;">
+                        <td style="padding:15px; font-family:'JetBrains Mono'; vertical-align:top; width:25%;">
+                            <div style="color:white; font-weight:bold;">${h.time.split(' ')[0]}</div> 
+                            <div style="color:#94a3b8; font-size:0.7rem;">${h.time.split(' ')[1] || ''}</div>
+                            <div style="margin-top:5px; font-size:0.65rem; color:#64748b; text-transform:uppercase;">${h.resetType || 'AUTO'}</div>
+                        </td>
+                        <td style="padding:15px; text-align:center; vertical-align:top; width:25%;">
+                            <div style="font-family:'JetBrains Mono'; font-size:1.3rem; font-weight:bold; color:var(--success);">${totalAct}</div>
+                            <div style="font-size:0.65rem; color:#64748b;">TOTAL ACTUAL</div>
+                        </td>
+                        <td style="padding:15px; vertical-align:top; width:50%;">
+                            ${summaryHTML}
+                        </td>
+                    </tr>`; 
+                }); 
+            } else { 
+                b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px; color:#94a3b8;'>Belum ada data history</td></tr>"; 
+            }
         }
+
+        // --- UPDATED EXCEL DOWNLOAD (WIDE COLUMNS) ---
         window.downloadRealExcel = async () => {
-            const snap = await get(ref(database, 'history')); if (!snap.exists()) return alert("Tidak ada data history!");
-            const dataRaw = Object.values(snap.val()).reverse(); const dataSheet = []; dataSheet.push(["WAKTU & TANGGAL", "TOTAL CLUBCAN", "TOTAL ROUNDCAN", "GRAND TOTAL"]);
-            const parseNum = (str) => { if(!str) return 0; const clean = str.toString().replace(/\D/g, ''); return parseInt(clean) || 0; };
-            dataRaw.forEach(row => { dataSheet.push([ row.time || "-", parseNum(row.detail?.club), parseNum(row.detail?.pouch), parseNum(row.grandTotal || row.total) ]); });
-            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(dataSheet); ws['!cols'] = [ { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 20 } ]; ws['!views'] = [ { state: 'frozen', xSplit: 0, ySplit: 1 } ]; XLSX.utils.book_append_sheet(wb, ws, "Produksi"); const dateStr = new Date().toISOString().slice(0,10); XLSX.writeFile(wb, `Produksi_PHI_${dateStr}.xlsx`);
+            const snap = await get(ref(database, 'history')); 
+            if (!snap.exists()) return alert("Tidak ada data history!");
+
+            const historyData = Object.values(snap.val()).reverse(); 
+            
+            const dataSheet = [
+                [
+                    "WAKTU LOG", 
+                    "RESET TYPE", 
+                    "LINE NAME", 
+                    "ACTUAL (Pcs)", 
+                    "THEORETICAL (Pcs)", 
+                    "EFFICIENCY (%)", 
+                    "WORKING TIME (Min)", 
+                    "EXT STOP (Min)", 
+                    "PLAN DOWN (Min)", 
+                    "TRIAL/SETUP (Min)", 
+                    "BREAKDOWN (Min)", 
+                    "SPEED LOSS (Min)", 
+                    "MINOR STOP (Min)"
+                ]
+            ];
+
+            historyData.forEach(h => {
+                if (h.lineDetails) {
+                    Object.keys(h.lineDetails).forEach(key => {
+                        const line = h.lineDetails[key];
+                        const oee = line.oee || {};
+                        
+                        dataSheet.push([
+                            h.time,                 
+                            h.resetType || "Auto",  
+                            key.replace("L", "LINE "), 
+                            line.actual,            
+                            line.theoretical,       
+                            parseFloat(line.efficiency) || 0, 
+                            oee.workingTime || 1440,
+                            oee.extStop || 0,
+                            oee.planDowntime || 0,
+                            oee.trial || 0,
+                            oee.breakdown || 0,
+                            oee.speedLoss || 0,
+                            oee.minorStop || 0
+                        ]);
+                    });
+                    dataSheet.push(["", "", "", "", "", "", "", "", "", "", "", "", ""]); 
+                } 
+                else {
+                    dataSheet.push([
+                        h.time, 
+                        h.resetType || "-", 
+                        "TOTAL SUMMARY", 
+                        h.grandTotal || 0, 
+                        "-", 
+                        "-", 
+                        "-", "-", "-", "-", "-", "-", "-"
+                    ]);
+                }
+            });
+
+            const wb = XLSX.utils.book_new(); 
+            const ws = XLSX.utils.aoa_to_sheet(dataSheet); 
+
+            // LEBAR KOLOM (WCH diperbesar agar tidak terpotong)
+            ws['!cols'] = [ 
+                { wch: 22 }, { wch: 25 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, 
+                { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, 
+                { wch: 18 }, { wch: 18 }, { wch: 18 } 
+            ]; 
+
+            ws['!views'] = [ { state: 'frozen', xSplit: 0, ySplit: 1 } ]; 
+            XLSX.utils.book_append_sheet(wb, ws, "Produksi Detail"); 
+            const dateStr = new Date().toISOString().slice(0,10); 
+            XLSX.writeFile(wb, `Laporan_Produksi_PHI_${dateStr}.xlsx`);
         };
     </script>
 </body>
