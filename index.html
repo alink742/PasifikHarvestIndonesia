@@ -447,7 +447,7 @@
             <div id="section-chart">
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 style="margin:0; font-family:'JetBrains Mono'">PRODUCTION: ACTUAL VS THEORETICAL</h3>
+                        <h3 style="margin:0; font-family:'JetBrains Mono'">PRODUCTION: ACTUAL VS THEORETICAL (OEE BASED)</h3>
                     </div>
                     <div class="canvas-wrapper">
                         <div class="chart-scroll-box">
@@ -708,12 +708,12 @@
             
             if(u === "admin" && p === "admin123") {
                 sessionStorage.setItem("login", "1");
-                sessionStorage.setItem("role", "operator"); // Full Akses
+                sessionStorage.setItem("role", "operator"); 
                 location.reload();
             } 
             else if(u === "phi" && p === "phjaya") {
                 sessionStorage.setItem("login", "1");
-                sessionStorage.setItem("role", "viewer"); // Hanya Lihat
+                sessionStorage.setItem("role", "viewer"); 
                 location.reload();
             } 
             else {
@@ -754,7 +754,7 @@
                 initChart(); 
                 syncGlobalStartTime();
 
-                loadCache(); // Load Data (Priority: Firebase -> Local Backup)
+                loadCache(); 
                 loadOEEData(); 
                 connectMQTT();
                 setInterval(updateClock, 1000);
@@ -798,64 +798,88 @@
             }
         };
 
-        window.openOEEDetail = (idx) => {
-            currentOEEIndex = idx;
-            document.getElementById('section-oee-grid').style.display = 'none';
-            document.getElementById('section-oee-detail').style.display = 'block';
-            document.getElementById('oeeDetailTitle').innerText = `LINE ${idx.toString().padStart(2,'0')} DETAIL`;
-            
-            const d = oeeData[idx];
-            document.getElementById('detail_work').value = d.workingTime; 
-            document.getElementById('detail_ext').value = d.extStop || 0;
-            document.getElementById('detail_plan').value = d.planDowntime || 0;
-            document.getElementById('detail_trial').value = d.trial || 0;
-            document.getElementById('detail_break').value = d.breakdown || 0;
-            document.getElementById('detail_speed').value = d.speedLoss || 0;
-            document.getElementById('detail_minor').value = d.minorStop || 0;
-            
-            calculateDetailOEE();
-        };
+    window.openOEEDetail = (idx) => {
+    currentOEEIndex = idx;
+    document.getElementById('section-oee-grid').style.display = 'none';
+    document.getElementById('section-oee-detail').style.display = 'block';
+    document.getElementById('oeeDetailTitle').innerText = `LINE ${idx.toString().padStart(2,'0')} DETAIL`;
+    
+    const d = oeeData[idx];
+    document.getElementById('detail_work').value = d.workingTime; 
+
+    const fields = ['ext', 'plan', 'trial', 'break', 'speed', 'minor'];
+    const dataKeys = ['extStop', 'planDowntime', 'trial', 'breakdown', 'speedLoss', 'minorStop'];
+
+    fields.forEach((field, i) => {
+        const inputEl = document.getElementById('detail_' + field);
+        inputEl.type = "text"; 
+        
+        let currentVal = d[dataKeys[i]] || "";
+        
+        if (currentVal !== "" && currentVal !== "0" && currentVal !== 0) {
+            let valStr = currentVal.toString();
+            inputEl.value = valStr.endsWith('+') ? valStr : valStr + "+";
+        } else {
+            inputEl.value = "";
+        }
+    });
+    
+    calculateDetailOEE();
+};
 
         window.closeOEEDetail = () => {
             document.getElementById('section-oee-detail').style.display = 'none';
             document.getElementById('section-oee-grid').style.display = 'block';
         };
 
-        function calculateDetailOEE() {
-            const getVal = (id) => Number(document.getElementById(id).value) || 0;
-            const work = getVal('detail_work');
-            const totalLoss = getVal('detail_ext') + getVal('detail_plan') + getVal('detail_trial') + getVal('detail_break') + getVal('detail_speed') + getVal('detail_minor');
-            const runTime = work - totalLoss;
+       function calculateDetailOEE() {
+    const evalSum = (id) => {
+        const val = document.getElementById(id).value;
+        if (!val) return 0;
+        return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
+    };
 
-            document.getElementById('detail_loss_val').innerText = totalLoss;
-            document.getElementById('detail_run_val').innerText = runTime;
+    const work = Number(document.getElementById('detail_work').value) || 0;
+    const totalLoss = evalSum('detail_ext') + evalSum('detail_plan') + evalSum('detail_trial') + 
+                      evalSum('detail_break') + evalSum('detail_speed') + evalSum('detail_minor');
+    
+    const runTime = work - totalLoss;
+
+    document.getElementById('detail_loss_val').innerText = totalLoss;
+    document.getElementById('detail_run_val').innerText = runTime;
+}
+
+   window.saveCurrentLineOEE = async () => {
+    const idx = currentOEEIndex;
+    
+    const cleanTrailingPlus = (id) => {
+        let val = document.getElementById(id).value.trim();
+        if (val.endsWith('+')) {
+            val = val.slice(0, -1);
         }
+        return val || "0";
+    };
+    
+    let wt = Number(document.getElementById('detail_work').value);
+    if(wt <= 0) wt = 1440; 
 
-        window.saveCurrentLineOEE = async () => {
-            const idx = currentOEEIndex;
-            const getVal = (id) => Number(document.getElementById(id).value) || 0;
-            
-            let wt = getVal('detail_work');
-            if(wt <= 0) wt = 1440; 
+    oeeData[idx] = { 
+        workingTime: wt,
+        extStop: cleanTrailingPlus('detail_ext'),
+        planDowntime: cleanTrailingPlus('detail_plan'),
+        trial: cleanTrailingPlus('detail_trial'),
+        breakdown: cleanTrailingPlus('detail_break'),
+        speedLoss: cleanTrailingPlus('detail_speed'),
+        minorStop: cleanTrailingPlus('detail_minor')
+    };
 
-            oeeData[idx] = { 
-                workingTime: wt,
-                extStop: getVal('detail_ext'),
-                planDowntime: getVal('detail_plan'),
-                trial: getVal('detail_trial'),
-                breakdown: getVal('detail_break'),
-                speedLoss: getVal('detail_speed'),
-                minorStop: getVal('detail_minor')
-            };
-
-            const updates = {};
-            updates[idx] = oeeData[idx];
-            closeOEEDetail(); 
-            await set(ref(database, 'config/oeeData'), updates);
-        };
+    const updates = {};
+    updates[idx] = oeeData[idx];
+    closeOEEDetail(); 
+    await set(ref(database, 'config/oeeData'), updates);
+};
 
         async function loadOEEData() {
-            // Cek Local Backup OEE dulu
             const localOEE = localStorage.getItem('phi_oee_backup');
             if(localOEE) {
                 try {
@@ -965,7 +989,7 @@
             e.preventDefault();
             let nextIdx = currentIdx + 1;
             if (nextIdx === 13) nextIdx = 14; 
-            if (nextIdx > 15) nextIdx = 1;     
+            if (nextIdx > 15) nextIdx = 1;      
             const nextEl = document.getElementById(`inputSpeed_${nextIdx}`);
             if (nextEl) { nextEl.focus(); nextEl.select(); }
         };
@@ -1042,38 +1066,64 @@
             });
         }
 
-        function calculateTheoretical(lineIndex) {
+    // FUNGSI REVISI: Theoretical akan berkurang drastis saat ada Loss Time
+// Sehingga Efisiensi (Actual / Theoretical) akan terlihat lebih tinggi/meningkat
+function calculateTheoretical(lineIndex) {
+    if (!globalStartTime || !lineConfigs[lineIndex-1]) return 0;
+    const config = lineConfigs[lineIndex-1];
+    const rate = Number(config.rate) || 0;
+    
+    const now = Date.now();
+    const startPoint = config.checkpoint || globalStartTime;
+    const minutesElapsed = Math.max(0, (now - startPoint) / 60000);
+
+    // 1. Hitung Gross (Target kotor tanpa gangguan)
+    const grossTheoretical = (Number(config.baseline) || 0) + Math.floor(minutesElapsed * rate);
+
+    // 2. Kalkulasi semua Loss Time dari Input OEE
+    const parseLoss = (val) => {
+        if (!val) return 0;
+        // Menghitung string seperti "10+20+5" menjadi total angka
+        return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
+    };
+
+    const oee = oeeData[lineIndex] || {};
+    const totalLossMinutes = parseLoss(oee.extStop) + parseLoss(oee.planDowntime) + 
+                             parseLoss(oee.trial) + parseLoss(oee.breakdown) + 
+                             parseLoss(oee.speedLoss) + parseLoss(oee.minorStop);
+    
+    // 3. Pengurangan Target: Semakin besar totalLossMinutes, target akan semakin kecil.
+    // Ini akan membuat pembagi (denominator) mengecil sehingga hasil bagi (Efisiensi) meningkat.
+    const lostProduction = Math.floor(totalLossMinutes * rate);
+    let netTheoretical = grossTheoretical - lostProduction;
+    
+    // Safety check: Jangan biarkan target lebih kecil dari actual agar eff tidak lebih dari 100% 
+    // (Opsional: Jika klien ingin eff bisa > 100%, hapus logika penyeimbang ini)
+    const actualSekarang = latestCounter[`L${lineIndex}`] || 0;
+    if (netTheoretical < actualSekarang) {
+        netTheoretical = actualSekarang; 
+    }
+
+    return netTheoretical <= 0 ? (actualSekarang > 0 ? actualSekarang : 1) : netTheoretical;
+}
+
+        // Fungsi "Buta" untuk Dashboard (Jalan Terus)
+        function calculateGrossTheoretical(lineIndex) {
             if (!globalStartTime || !lineConfigs[lineIndex-1]) return 0;
             const config = lineConfigs[lineIndex-1];
-            const rate = config.rate || 0; 
-            
-            let limitWorkingTime = oeeData[lineIndex]?.workingTime;
-            if (!limitWorkingTime || limitWorkingTime <= 0) limitWorkingTime = 1440; 
-
+            const rate = Number(config.rate) || 0;
             const now = Date.now();
             const startPoint = config.checkpoint || globalStartTime;
             const minutesElapsed = Math.max(0, (now - startPoint) / 60000);
 
-            const timeUsedForCalculation = (minutesElapsed < limitWorkingTime) ? minutesElapsed : limitWorkingTime;
-
-            const grossTheoretical = (config.baseline || 0) + Math.floor(timeUsedForCalculation * rate);
-
-            const oee = oeeData[lineIndex] || {};
-            const totalLossMinutes = (oee.extStop || 0) +
-                                     (oee.planDowntime || 0) +
-                                     (oee.trial || 0) +
-                                     (oee.breakdown || 0) +
-                                     (oee.speedLoss || 0) +
-                                     (oee.minorStop || 0);
-            
-            const lostProduction = Math.floor(totalLossMinutes * rate);
-            const netTheoretical = grossTheoretical - lostProduction;
-            return (netTheoretical < 0) ? 0 : netTheoretical;
+            const gross = (Number(config.baseline) || 0) + Math.floor(minutesElapsed * rate);
+            return isNaN(gross) ? 0 : gross;
         }
 
-       function updateSpecificLine(lineIndex) {
+        function updateSpecificLine(lineIndex) {
             const actual = latestCounter[`L${lineIndex}`] || 0;
-            const prediction = calculateTheoretical(lineIndex);
+            // Dashboard menggunakan kalkulasi BUTA
+            const prediction = calculateGrossTheoretical(lineIndex); 
             
             let eff = prediction > 0 ? ((actual / prediction) * 100).toFixed(0) : 0;
             if(eff > 100) eff = 100;
@@ -1091,13 +1141,15 @@
             }
             updateTotals();
         }
-       function updateTotals() {
+
+        function updateTotals() {
             let sumClubAct = 0, sumClubPred = 0;
             let sumPouchAct = 0, sumPouchPred = 0;
             for (let i = 1; i <= 15; i++) {
                 if(i === 13) continue;
                 const actual = latestCounter[`L${i}`] || 0;
-                const prediction = calculateTheoretical(i);
+                // Totals menggunakan kalkulasi BUTA
+                const prediction = calculateGrossTheoretical(i); 
                 if(i === 5 || i === 6) { sumPouchAct += actual; sumPouchPred += prediction; } else { sumClubAct += actual; sumClubPred += prediction; }
             }
             
@@ -1116,7 +1168,6 @@
             document.getElementById("pouchEff").innerText = pouchEff + "%";
             
             const grandTotal = sumClubAct + sumPouchAct;
-            
             document.getElementById("grandTotal").innerText = grandTotal.toLocaleString('id-ID');
             
             if(prodChart) updateBarChart();
@@ -1151,38 +1202,33 @@
             }
         }
 
-        // --- NEW SAVE & RESET LOGIC ---
         async function saveAndReset(targetMachine, forcedTime = null) {
             const grand = document.getElementById("grandTotal").innerText;
-            
-            // 1. SNAPSHOT DATA DETAIL
             const lineSnapshot = {};
             let totalTheoGlobal = 0;
-            
-            // Global OEE Accumulator
-            let globalOEE = {
-                workingTime: 0,
-                breakdown: 0,
-                downtime: 0, // Other Loss
-                totalLoss: 0
+            let globalOEE = { workingTime: 0, breakdown: 0, downtime: 0, totalLoss: 0 };
+
+            const parseLoss = (val) => {
+                if (!val) return 0;
+                return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
             };
 
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
                 const act = latestCounter[`L${i}`] || 0;
+                // Save history menggunakan kalkulasi CERDAS (OEE) agar akurat di laporan
                 const theo = calculateTheoretical(i); 
                 totalTheoGlobal += theo;
                 
                 let eff = 0;
                 if(theo > 0) eff = ((act / theo) * 100).toFixed(1);
                 
-                // OEE Calculation
                 const d = oeeData[i] || {};
-                const lineLoss = (d.extStop||0) + (d.planDowntime||0) + (d.trial||0) + (d.breakdown||0) + (d.speedLoss||0) + (d.minorStop||0);
+                const lineLoss = parseLoss(d.extStop) + parseLoss(d.planDowntime) + parseLoss(d.trial) + parseLoss(d.breakdown) + parseLoss(d.speedLoss) + parseLoss(d.minorStop);
                 
                 globalOEE.workingTime += (d.workingTime || 1440);
-                globalOEE.breakdown += (d.breakdown || 0);
-                globalOEE.downtime += (lineLoss - (d.breakdown || 0));
+                globalOEE.breakdown += parseLoss(d.breakdown);
+                globalOEE.downtime += (lineLoss - parseLoss(d.breakdown));
                 globalOEE.totalLoss += lineLoss;
 
                 lineSnapshot[`L${i}`] = {
@@ -1197,7 +1243,6 @@
             let globalEff = 0;
             if(totalTheoGlobal > 0) globalEff = ((totalActGlobal / totalTheoGlobal) * 100).toFixed(1);
 
-            // 2. SIMPAN KE FIREBASE
             await push(ref(database, 'history'), { 
                 time: new Date().toLocaleString('id-ID'), 
                 grandTotal: grand, 
@@ -1208,7 +1253,6 @@
                 resetType: targetMachine + (forcedTime ? " (AUTO CATCH-UP)" : "") 
             });
 
-            // --- RESET PROCESS ---
             const newStartTime = forcedTime ? forcedTime : Date.now();
             const isAll = (targetMachine === "ALL");
             let targetLines = [];
@@ -1246,10 +1290,8 @@
             }
 
             await set(ref(database, 'config/lineConfigs'), updates);
-            if(prodChart) {
-                await set(ref(database, 'config/oeeData'), oeeUpdates);
-                updateBarChart();
-            }
+            await set(ref(database, 'config/oeeData'), oeeUpdates);
+            if(prodChart) updateBarChart();
 
             if(window.mqttClient && window.mqttClient.connected) {
                 if(isAll) { 
@@ -1258,9 +1300,7 @@
                     window.mqttClient.publish(`${mqttConfig.topicBase}/${targetMachine}/cmd`, JSON.stringify({ cmd: "RESET", reset_source: "web" })); 
                 }
             }
-            
             if (isAll) { for (let i = 1; i <= 15; i++) { latestCounter[`L${i}`] = 0; } }
-
             updateUI(); 
         }
 
@@ -1277,20 +1317,15 @@
             if(confirm((m === 'all') ? "RESET SEMUA MESIN?" : `RESET ${m.toUpperCase()}?`)) { await saveAndReset((m === 'all') ? "ALL" : m); }
         };
 
-        // --- UPDATED LOAD CACHE (RESTORE FROM LOCAL IF FIREBASE IS STALE) ---
         async function loadCache() { 
-            // 1. Cek LocalStorage (Backup Anti Mati Listrik)
             const localBackup = localStorage.getItem('phi_counter_backup');
             if(localBackup) {
                 try {
                     const parsedLocal = JSON.parse(localBackup);
-                    // Gunakan data lokal sementara sampai Firebase update
                     Object.assign(latestCounter, parsedLocal);
                     console.log("Restored from Local Backup");
                 } catch(e) {}
             }
-
-            // 2. Cek Firebase (Server Backup)
             const snap = await get(ref(database, 'lastCache')); 
             if(snap.exists()) { 
                 const d = snap.val(); 
@@ -1300,10 +1335,9 @@
             } 
         }
         
-     window.initChart = () => {
+    window.initChart = () => {
     Chart.register(ChartDataLabels);
     const ctx = document.getElementById('productionChart').getContext('2d');
-    
     const labels = [];
     for(let i=1; i<=15; i++) { if(i!==13) labels.push(`L${i.toString().padStart(2,'0')}`); }
 
@@ -1326,14 +1360,8 @@
                         color: '#020617', 
                         anchor: 'center',
                         align: 'center',
-                        // Perintah: Tulisan atas ke bawah (vertikal)
                         rotation: -90, 
-                        font: { 
-                            weight: '800', 
-                            family: "'JetBrains Mono'", 
-                            // Ukuran menyesuaikan agar tidak melewati grafik
-                            size: window.innerWidth < 768 ? 9 : 11 
-                        },
+                        font: { weight: '800', family: "'JetBrains Mono'", size: window.innerWidth < 768 ? 9 : 11 },
                         formatter: (value, context) => { 
                             const rawVal = context.chart.data.rawActual[context.dataIndex];
                             return rawVal > 0 ? rawVal.toLocaleString('id-ID') : ''; 
@@ -1341,7 +1369,7 @@
                     }
                 },
                 { 
-                    label: 'THEORETICAL', 
+                    label: 'THEORETICAL (OEE)', 
                     data: [], 
                     backgroundColor: '#f87171', 
                     barPercentage: 0.7,
@@ -1352,13 +1380,8 @@
                         color: '#ffffff', 
                         anchor: 'center', 
                         align: 'center',
-                        // Perintah: Tulisan atas ke bawah (vertikal)
                         rotation: -90,
-                        font: { 
-                            weight: '800', 
-                            family: "'JetBrains Mono'", 
-                            size: window.innerWidth < 768 ? 9 : 11 
-                        },
+                        font: { weight: '800', family: "'JetBrains Mono'", size: window.innerWidth < 768 ? 9 : 11 },
                         formatter: (value, context) => {
                             const rawTheo = context.chart.data.rawTheo[context.dataIndex];
                             return rawTheo > 0 ? rawTheo.toLocaleString('id-ID') : ''; 
@@ -1368,42 +1391,21 @@
             ] 
         },
         options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            animation: false, 
+            responsive: true, maintainAspectRatio: false, animation: false, 
             plugins: { 
-                legend: { 
-                    display: true,
-                    labels: { color: '#94a3b8', font:{family:"'JetBrains Mono'"} } 
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false
-                }
+                legend: { display: true, labels: { color: '#94a3b8', font:{family:"'JetBrains Mono'"} } },
+                tooltip: { mode: 'index', intersect: false }
             }, 
             scales: { 
-                x: { 
-                    stacked: true, 
-                    grid: { display: false }, 
-                    ticks: { 
-                        color: '#ffffff', 
-                        font: { family: "'JetBrains Mono'", size: 10, weight: 'bold' } 
-                    } 
-                },
-                y: { 
-                    stacked: true, 
-                    min: 0,
-                    max: 100, 
-                    grid: { color: '#334155', drawBorder: false }, 
-                    ticks: { display: false } 
-                } 
+                x: { stacked: true, grid: { display: false }, ticks: { color: '#ffffff', font: { family: "'JetBrains Mono'", size: 10, weight: 'bold' } } },
+                y: { stacked: true, min: 0, max: 100, grid: { color: '#334155', drawBorder: false }, ticks: { display: false } } 
             } 
         } 
     });
 };
+
         function updateBarChart() {
             if (!prodChart) return;
-            
             const visualActualData = [];
             const visualSisaData = []; 
             const rawActualData = [];
@@ -1412,9 +1414,9 @@
 
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
-                
                 const act = latestCounter[`L${i}`] || 0;
-                const theo = calculateTheoretical(i);
+                // Bar Chart menggunakan kalkulasi CERDAS (OEE)
+                const theo = calculateTheoretical(i); 
 
                 rawActualData.push(act);
                 rawTheoData.push(theo);
@@ -1424,14 +1426,12 @@
                 if(percentAct > 100) percentAct = 100; 
 
                 let percentSisa = 100 - percentAct; 
-
                 visualActualData.push(percentAct);
                 visualSisaData.push(percentSisa);
 
                 let eff = 0;
                 if (theo > 0) eff = ((act / theo) * 100).toFixed(0);
-                const lineName = `L${i.toString().padStart(2,'0')}`;
-                newLabels.push([lineName, `Eff ${eff}%`]); 
+                newLabels.push([`L${i.toString().padStart(2,'0')}`, `Eff ${eff}%`]); 
             }
 
             prodChart.data.labels = newLabels;
@@ -1442,42 +1442,19 @@
             prodChart.update();
         }
 
-        // --- UPDATED LOAD HISTORY (WEB VIEW - SIMPLE TOTAL ONLY) ---
         async function loadHistoryTable() {
             const b = document.getElementById("historyTableBody"); 
             b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>Loading data...</td></tr>"; 
-            
             const snap = await get(ref(database, 'history')); 
             b.innerHTML = "";
-            
             if(snap.exists()) { 
                 Object.values(snap.val()).reverse().forEach(h => { 
                     let totalAct = h.grandTotal || h.total || 0;
                     let totalTheo = h.grandTheoretical ? parseInt(h.grandTheoretical).toLocaleString('id-ID') : "-";
                     let eff = h.globalEfficiency ? h.globalEfficiency : 0;
-                    
                     let breakdown = h.globalOEE ? h.globalOEE.breakdown : 0;
                     let otherLoss = h.globalOEE ? h.globalOEE.downtime : 0;
-
-                    let effColor = '#f87171'; 
-                    if(eff >= 90) effColor = '#4ade80'; 
-                    else if(eff >= 70) effColor = '#facc15'; 
-
-                    let summaryHTML = `
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; font-size:0.7rem; color:#cbd5e1;">
-                            <div>THEORETICAL</div>
-                            <div style="text-align:right; font-weight:bold; color:white;">${totalTheo}</div>
-                            
-                            <div>EFFICIENCY</div>
-                            <div style="text-align:right; font-weight:bold; color:${effColor};">${eff}%</div>
-                            
-                            <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px;">TOTAL BREAKDOWN</div>
-                            <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px; text-align:right; font-weight:bold; color:#f87171;">${breakdown} <span style="font-size:0.6rem">min</span></div>
-                            
-                            <div>OTHER LOSS</div>
-                            <div style="text-align:right; font-weight:bold; color:#facc15;">${otherLoss} <span style="font-size:0.6rem">min</span></div>
-                        </div>
-                    `;
+                    let effColor = (eff >= 90) ? '#4ade80' : (eff >= 70 ? '#facc15' : '#f87171');
 
                     b.innerHTML += `
                     <tr style="border-bottom:1px solid #334155;">
@@ -1491,91 +1468,37 @@
                             <div style="font-size:0.65rem; color:#64748b;">TOTAL ACTUAL</div>
                         </td>
                         <td style="padding:15px; vertical-align:top; width:50%;">
-                            ${summaryHTML}
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; font-size:0.7rem; color:#cbd5e1;">
+                                <div>THEORETICAL</div><div style="text-align:right; font-weight:bold; color:white;">${totalTheo}</div>
+                                <div>EFFICIENCY</div><div style="text-align:right; font-weight:bold; color:${effColor};">${eff}%</div>
+                                <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px;">BREAKDOWN</div>
+                                <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px; text-align:right; font-weight:bold; color:#f87171;">${breakdown} min</div>
+                                <div>OTHER LOSS</div><div style="text-align:right; font-weight:bold; color:#facc15;">${otherLoss} min</div>
+                            </div>
                         </td>
                     </tr>`; 
                 }); 
-            } else { 
-                b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px; color:#94a3b8;'>Belum ada data history</td></tr>"; 
-            }
+            } else { b.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px; color:#94a3b8;'>Belum ada data history</td></tr>"; }
         }
 
-        // --- UPDATED EXCEL DOWNLOAD (WIDE COLUMNS) ---
         window.downloadRealExcel = async () => {
             const snap = await get(ref(database, 'history')); 
             if (!snap.exists()) return alert("Tidak ada data history!");
-
             const historyData = Object.values(snap.val()).reverse(); 
-            
-            const dataSheet = [
-                [
-                    "WAKTU LOG", 
-                    "RESET TYPE", 
-                    "LINE NAME", 
-                    "ACTUAL (Pcs)", 
-                    "THEORETICAL (Pcs)", 
-                    "EFFICIENCY (%)", 
-                    "WORKING TIME (Min)", 
-                    "EXT STOP (Min)", 
-                    "PLAN DOWN (Min)", 
-                    "TRIAL/SETUP (Min)", 
-                    "BREAKDOWN (Min)", 
-                    "SPEED LOSS (Min)", 
-                    "MINOR STOP (Min)"
-                ]
-            ];
-
+            const dataSheet = [["WAKTU LOG", "RESET TYPE", "LINE NAME", "ACTUAL (Pcs)", "THEORETICAL (Pcs)", "EFFICIENCY (%)", "WORKING TIME (Min)", "EXT STOP (Min)", "PLAN DOWN (Min)", "TRIAL/SETUP (Min)", "BREAKDOWN (Min)", "SPEED LOSS (Min)", "MINOR STOP (Min)"]];
             historyData.forEach(h => {
                 if (h.lineDetails) {
                     Object.keys(h.lineDetails).forEach(key => {
-                        const line = h.lineDetails[key];
-                        const oee = line.oee || {};
-                        
-                        dataSheet.push([
-                            h.time,                 
-                            h.resetType || "Auto",  
-                            key.replace("L", "LINE "), 
-                            line.actual,            
-                            line.theoretical,       
-                            parseFloat(line.efficiency) || 0, 
-                            oee.workingTime || 1440,
-                            oee.extStop || 0,
-                            oee.planDowntime || 0,
-                            oee.trial || 0,
-                            oee.breakdown || 0,
-                            oee.speedLoss || 0,
-                            oee.minorStop || 0
-                        ]);
+                        const line = h.lineDetails[key]; const oee = line.oee || {};
+                        dataSheet.push([h.time, h.resetType || "Auto", key.replace("L", "LINE "), line.actual, line.theoretical, parseFloat(line.efficiency) || 0, oee.workingTime || 1440, oee.extStop || 0, oee.planDowntime || 0, oee.trial || 0, oee.breakdown || 0, oee.speedLoss || 0, oee.minorStop || 0]);
                     });
-                    dataSheet.push(["", "", "", "", "", "", "", "", "", "", "", "", ""]); 
-                } 
-                else {
-                    dataSheet.push([
-                        h.time, 
-                        h.resetType || "-", 
-                        "TOTAL SUMMARY", 
-                        h.grandTotal || 0, 
-                        "-", 
-                        "-", 
-                        "-", "-", "-", "-", "-", "-", "-"
-                    ]);
+                    dataSheet.push(Array(13).fill(""));
                 }
             });
-
-            const wb = XLSX.utils.book_new(); 
-            const ws = XLSX.utils.aoa_to_sheet(dataSheet); 
-
-            // LEBAR KOLOM (WCH diperbesar agar tidak terpotong)
-            ws['!cols'] = [ 
-                { wch: 22 }, { wch: 25 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, 
-                { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, 
-                { wch: 18 }, { wch: 18 }, { wch: 18 } 
-            ]; 
-
-            ws['!views'] = [ { state: 'frozen', xSplit: 0, ySplit: 1 } ]; 
-            XLSX.utils.book_append_sheet(wb, ws, "Produksi Detail"); 
-            const dateStr = new Date().toISOString().slice(0,10); 
-            XLSX.writeFile(wb, `Laporan_Produksi_PHI_${dateStr}.xlsx`);
+            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(dataSheet);
+            ws['!cols'] = Array(13).fill({ wch: 18 }); ws['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Produksi Detail");
+            XLSX.writeFile(wb, `Laporan_Produksi_PHI_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
     </script>
 </body>
