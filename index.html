@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PASIFIK HARVEST INDONESIA - IoT Dashboard</title>
+    <title>PASIFIK HARVEST INDONESIA - Production Dashboard</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,7 +146,7 @@
         .oee-selector-card:hover { border-color: var(--purple); background: #262c3d; }
         .oee-selector-card .arrow { font-size: 1.2rem; color: #94a3b8; }
 
-        .oee-detail-container { max-width: 800px; margin: 0 auto; }
+        .oee-detail-container { max-width: 900px; margin: 0 auto; }
         .oee-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .btn-back { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .btn-back:hover { background: #334155; color: white; }
@@ -291,15 +291,46 @@
             .chart-filters { display: flex; justify-content: space-between; gap: 5px; }
             .chart-filters button { flex: 1; margin: 0; padding: 6px 0; font-size: 0.7rem; text-align: center; }
             
+        /* --- UPDATE BAGIAN INI DI DALAM @media (max-width: 768px) --- */
+            
             .oee-detail-header h3 { font-size: 1rem; }
             .btn-back { padding: 8px 12px; font-size: 0.8rem; }
             .oee-form-card { padding: 15px; } 
-            .oee-input-grid { grid-template-columns: 1fr 1fr; gap: 10px 8px; }
-            .oee-input { font-size: 0.9rem; padding: 8px 5px; height: 40px; width: 100%; }
-            .oee-label { font-size: 0.65rem; margin-bottom: 2px; }
+            
+            /* PERBAIKAN GRID AGAR SEJAJAR */
+            .oee-input-grid { 
+                display: grid;
+                grid-template-columns: 1fr 1fr; 
+                gap: 12px 10px; /* Jarak antar kotak */
+            }
+
+            .oee-field { 
+                display: flex; 
+                flex-direction: column;
+                justify-content: flex-end; /* Memaksa elemen ke bawah agar rata */
+                height: 100%; /* Mengisi penuh tinggi grid cell */
+            }
+
+            .oee-input { 
+                font-size: 0.9rem; 
+                padding: 8px 5px; 
+                height: 40px; 
+                width: 100%; 
+            }
+
+            .oee-label { 
+                font-size: 0.65rem; 
+                margin-bottom: 4px;
+                /* KUNCI AGAR SEJAJAR: */
+                min-height: 25px; /* Memberi tinggi minimal (cukup untuk 2 baris teks) */
+                display: flex;
+                align-items: flex-end; /* Teks label rata bawah mendekati input */
+                line-height: 1.1;
+            }
+            
+            /* Bagian bawah tetap sama */
             .oee-summary-bar { gap: 10px; padding-top: 15px; margin-top: 15px; }
             .summary-box .val { font-size: 1.4rem; }
-            
             .modal-card { width: 95%; max-height: 90vh; padding: 15px; }
             .speed-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .input-group { padding: 5px; gap: 2px; }
@@ -447,7 +478,7 @@
             <div id="section-chart">
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 style="margin:0; font-family:'JetBrains Mono'">PRODUCTION: ACTUAL VS THEORETICAL (OEE BASED)</h3>
+                        <h3 style="margin:0; font-family:'JetBrains Mono'">OEE PERFORMANCE</h3>
                     </div>
                     <div class="canvas-wrapper">
                         <div class="chart-scroll-box">
@@ -460,7 +491,7 @@
             <div id="section-oee-grid">
                 <div style="margin-bottom:20px;">
                     <h2 style="font-family:'JetBrains Mono'; font-size:1.3rem; margin:0; color:var(--purple);">INPUT OEE (Pilih Line)</h2>
-                    <small style="color:#94a3b8">Klik pada Line untuk memasukkan data downtime.</small>
+                    <small style="color:#94a3b8">Masukkan data breakdown untuk analisis OEE (Grafik).</small>
                 </div>
                 <div class="grid" id="oeeSelectorContainer">
                     </div>
@@ -478,48 +509,60 @@
                     <div class="oee-form-card">
                         <div class="oee-input-grid">
                             <div class="oee-field">
-                                <label class="oee-label">WORKING TIME</label>
-                                <input class="oee-input" type="number" id="detail_work" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_ext')">
+                                <label class="oee-label" style="color:var(--success)">EXTERNAL STOP (Min)</label>
+                                <input class="oee-input" type="text" id="detail_ext" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_defect')">
                             </div>
                             <div class="oee-field">
-                                <label class="oee-label">EXTERNAL STOP</label>
-                                <input class="oee-input" type="number" id="detail_ext" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_plan')">
+                                <label class="oee-label" style="color:var(--danger)">QUALITY DEFECT (Min/Pcs)</label>
+                                <input class="oee-input" type="text" id="detail_defect" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_plan')">
+                            </div>
+                            
+                            <div class="oee-field">
+                                <label class="oee-label" style="color:var(--success)">PLAN DOWNTIME (Min)</label>
+                                <input class="oee-input" type="text" id="detail_plan" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_speed')">
                             </div>
                             <div class="oee-field">
-                                <label class="oee-label">PLAN DOWNTIME</label>
-                                <input class="oee-input" type="number" id="detail_plan" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_trial')">
+                                <label class="oee-label" style="color:var(--danger)">SPEED LOSS (Min)</label>
+                                <input class="oee-input" type="text" id="detail_speed" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_trial')">
+                            </div>
+
+                            <div class="oee-field">
+                                <label class="oee-label" style="color:var(--success)">TRIAL / SETUP (Min)</label>
+                                <input class="oee-input" type="text" id="detail_trial" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_minor')">
                             </div>
                             <div class="oee-field">
-                                <label class="oee-label">TRIAL / SETUP</label>
-                                <input class="oee-input" type="number" id="detail_trial" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_break')">
+                                <label class="oee-label" style="color:var(--danger)">MINOR STOP (Min)</label>
+                                <input class="oee-input" type="text" id="detail_minor" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_unused')">
                             </div>
+
                             <div class="oee-field">
-                                <label class="oee-label">BREAKDOWN</label>
-                                <input class="oee-input" type="number" id="detail_break" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_speed')">
+                                <label class="oee-label" style="color:var(--success)">UNUSED (Min)</label>
+                                <input class="oee-input" type="text" id="detail_unused" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, 'detail_break')">
                             </div>
-                            <div class="oee-field">
-                                <label class="oee-label">SPEED LOSS</label>
-                                <input class="oee-input" type="number" id="detail_speed" placeholder="0" onkeydown="handleOEEEnter(event, 'detail_minor')">
+                             <div class="oee-field">
+                                <label class="oee-label" style="color:var(--danger)">BREAKDOWN (Min)</label>
+                                <input class="oee-input" type="text" id="detail_break" placeholder="0" onfocus="autoPlus(this)" onblur="cleanPlus(this)" onkeydown="handleOEEEnter(event, null)">
                             </div>
-                            <div class="oee-field" style="grid-column: 1 / -1;">
-                                <label class="oee-label">MINOR STOP</label>
-                                <input class="oee-input" type="number" id="detail_minor" placeholder="0" onkeydown="handleOEEEnter(event, null)">
+                            
+                            <div class="oee-field" style="grid-column: 1 / -1; margin-top:10px; border-top:1px solid #334155; padding-top:10px;">
+                                <label class="oee-label">TOTAL AVAILABLE TIME (Setara 24 Jam)</label>
+                                <input class="oee-input" type="number" id="detail_work" value="1440" placeholder="1440" disabled style="color:#64748b; border-color:#334155;">
                             </div>
                         </div>
 
                         <div class="oee-summary-bar">
                             <div class="summary-box">
-                                <h4>TOTAL LOSS (Min)</h4>
-                                <span class="val" id="detail_loss_val" style="color:#f87171">0</span>
+                                <h4>TARGET NETT (Pcs)</h4>
+                                <span class="val" id="detail_run_val" style="color:var(--success)">0</span>
                             </div>
                             <div class="summary-box">
-                                <h4>RUN TIME (Min)</h4>
-                                <span class="val" id="detail_run_val" style="color:var(--success)">0</span>
+                                <h4>OEE SCORE (%)</h4>
+                                <span class="val" id="detail_oee_score" style="color:var(--purple)">0%</span>
                             </div>
                         </div>
 
                         <button class="access-control" onclick="saveCurrentLineOEE()" style="width:100%; margin-top:20px; padding:15px; background:var(--purple); color:white; border:none; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer;">
-                            SIMPAN DATA LINE INI
+                            SIMPAN DATA OEE
                         </button>
                     </div>
                 </div>
@@ -618,7 +661,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIG: MQTT
         const mqttConfig = {
             host: "broker.emqx.io",
             port: 8084,
@@ -643,26 +685,39 @@
         let globalStartTime = null; 
         let lineConfigs = Array(16).fill(null).map(() => ({ rate: 70, baseline: 0, checkpoint: null })); 
         
-        // DEFAULT OEE DATA
+        // OEE Data Init
         let oeeData = Array(16).fill(null).map(() => ({
-            workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0
+            workingTime: 1440, 
+            extStop: 0, planDowntime: 0, trial: 0, unused: 0,
+            defect: 0, speedLoss: 0, minorStop: 0, breakdown: 0
         }));
         let currentOEEIndex = 1;
 
         let prodChart = null;
         let autoResetConfig = { h: 6, m: 0 };
 
-        // --- ANTI MATI LISTRIK: SAVE LOCAL BACKUP ---
+        window.autoPlus = (el) => {
+            if(el.value && !el.value.endsWith('+')) {
+                el.value += '+';
+            }
+        };
+        
+        window.cleanPlus = (el) => {
+            if(el.value.endsWith('+')) {
+                el.value = el.value.slice(0, -1);
+            }
+            calculateDetailOEE();
+        };
+
         function saveLocalBackup() {
             try {
                 localStorage.setItem('phi_counter_backup', JSON.stringify(latestCounter));
                 localStorage.setItem('phi_oee_backup', JSON.stringify(oeeData));
                 localStorage.setItem('phi_last_active', Date.now());
-                console.log("Local backup saved (Anti-Power Loss)");
+                console.log("Local backup saved");
             } catch(e) { console.error("Backup failed", e); }
         }
 
-        // Jalankan backup setiap 30 detik
         setInterval(saveLocalBackup, 30000); 
 
         // --- NAVIGATION HELPERS ---
@@ -683,7 +738,10 @@
 
             if(tabName === 'lines') document.getElementById('section-lines').style.display = 'block';
             if(tabName === 'totals') document.getElementById('section-totals').style.display = 'block';
-            if(tabName === 'chart') document.getElementById('section-chart').style.display = 'block';
+            if(tabName === 'chart') {
+                document.getElementById('section-chart').style.display = 'block';
+                if(prodChart) prodChart.update(); 
+            }
             if(tabName === 'oee') document.getElementById('section-oee-grid').style.display = 'block';
         }
 
@@ -693,7 +751,7 @@
             document.getElementById('machineSelectMobile').value = val;
         }
 
-        // --- LOGIN LOGIC UPDATE ---
+        // --- LOGIN LOGIC ---
         document.addEventListener('DOMContentLoaded', () => {
             const userField = document.getElementById("username");
             const passField = document.getElementById("password");
@@ -760,7 +818,7 @@
                 setInterval(updateClock, 1000);
                 setInterval(updateUI, 1000);
                 
-                ['detail_work','detail_ext','detail_plan','detail_trial','detail_break','detail_speed','detail_minor'].forEach(id => {
+                ['detail_work','detail_ext','detail_plan','detail_trial','detail_unused','detail_defect','detail_speed','detail_minor','detail_break'].forEach(id => {
                     document.getElementById(id).addEventListener('input', calculateDetailOEE);
                 });
             }
@@ -774,7 +832,6 @@
                     document.getElementById(nextId).focus();
                 } else {
                     saveCurrentLineOEE();
-                    closeOEEDetail();
                 }
             }
         };
@@ -799,84 +856,102 @@
         };
 
     window.openOEEDetail = (idx) => {
-    currentOEEIndex = idx;
-    document.getElementById('section-oee-grid').style.display = 'none';
-    document.getElementById('section-oee-detail').style.display = 'block';
-    document.getElementById('oeeDetailTitle').innerText = `LINE ${idx.toString().padStart(2,'0')} DETAIL`;
-    
-    const d = oeeData[idx];
-    document.getElementById('detail_work').value = d.workingTime; 
-
-    const fields = ['ext', 'plan', 'trial', 'break', 'speed', 'minor'];
-    const dataKeys = ['extStop', 'planDowntime', 'trial', 'breakdown', 'speedLoss', 'minorStop'];
-
-    fields.forEach((field, i) => {
-        const inputEl = document.getElementById('detail_' + field);
-        inputEl.type = "text"; 
+        currentOEEIndex = idx;
+        document.getElementById('section-oee-grid').style.display = 'none';
+        document.getElementById('section-oee-detail').style.display = 'block';
+        document.getElementById('oeeDetailTitle').innerText = `LINE ${idx.toString().padStart(2,'0')} DETAIL`;
         
-        let currentVal = d[dataKeys[i]] || "";
-        
-        if (currentVal !== "" && currentVal !== "0" && currentVal !== 0) {
-            let valStr = currentVal.toString();
-            inputEl.value = valStr.endsWith('+') ? valStr : valStr + "+";
-        } else {
-            inputEl.value = "";
+        const d = oeeData[idx] || {};
+        document.getElementById('detail_work').value = 1440; // Default view
+
+        const fill = (id, val) => {
+            document.getElementById(id).value = (val && val !== 0 && val !== "0") ? val : "";
         }
-    });
-    
-    calculateDetailOEE();
-};
+
+        fill('detail_ext', d.extStop);
+        fill('detail_plan', d.planDowntime);
+        fill('detail_trial', d.trial);
+        fill('detail_unused', d.unused);
+        fill('detail_defect', d.defect);
+        fill('detail_speed', d.speedLoss);
+        fill('detail_minor', d.minorStop);
+        fill('detail_break', d.breakdown);
+        
+        calculateDetailOEE();
+    };
 
         window.closeOEEDetail = () => {
             document.getElementById('section-oee-detail').style.display = 'none';
             document.getElementById('section-oee-grid').style.display = 'block';
         };
 
-       function calculateDetailOEE() {
-    const evalSum = (id) => {
-        const val = document.getElementById(id).value;
-        if (!val) return 0;
-        return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
-    };
+        function calculateDetailOEE() {
+            const evalSum = (id) => {
+                const val = document.getElementById(id).value;
+                if (!val) return 0;
+                return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
+            };
 
-    const work = Number(document.getElementById('detail_work').value) || 0;
-    const totalLoss = evalSum('detail_ext') + evalSum('detail_plan') + evalSum('detail_trial') + 
-                      evalSum('detail_break') + evalSum('detail_speed') + evalSum('detail_minor');
-    
-    const runTime = work - totalLoss;
+            let minutesRunning = 0;
+            if(globalStartTime) {
+                minutesRunning = (Date.now() - globalStartTime) / 60000;
+            }
+            if(minutesRunning < 0) minutesRunning = 0;
 
-    document.getElementById('detail_loss_val').innerText = totalLoss;
-    document.getElementById('detail_run_val').innerText = runTime;
-}
+            const ext = evalSum('detail_ext');
+            const plan = evalSum('detail_plan');
+            const trial = evalSum('detail_trial');
+            const unused = evalSum('detail_unused');
+            const defect = evalSum('detail_defect');
+            const speed = evalSum('detail_speed');
+            const minor = evalSum('detail_minor');
+            const brk = evalSum('detail_break');
+
+            const totalPotongan = ext + plan + trial + unused + defect + speed + minor + brk;
+            
+            let netTime = minutesRunning - totalPotongan;
+            if(netTime < 0) netTime = 0;
+
+            const actual = latestCounter[`L${currentOEEIndex}`] || 0;
+            const rate = lineConfigs[currentOEEIndex-1]?.rate || 1;
+            
+            const target = Math.floor(netTime * rate);
+            
+            let oeeScore = 0;
+            if (target > 0) {
+                oeeScore = ((actual / target) * 100).toFixed(1);
+            }
+            if(oeeScore > 100) oeeScore = 100;
+
+            document.getElementById('detail_run_val').innerText = target.toLocaleString('id-ID'); 
+            document.getElementById('detail_oee_score').innerText = oeeScore + "%";
+        }
 
    window.saveCurrentLineOEE = async () => {
     const idx = currentOEEIndex;
-    
-    const cleanTrailingPlus = (id) => {
+    const getRawVal = (id) => {
         let val = document.getElementById(id).value.trim();
-        if (val.endsWith('+')) {
-            val = val.slice(0, -1);
-        }
-        return val || "0";
-    };
+        if(val.endsWith('+')) val = val.slice(0, -1);
+        return val; 
+    }
     
-    let wt = Number(document.getElementById('detail_work').value);
-    if(wt <= 0) wt = 1440; 
-
     oeeData[idx] = { 
-        workingTime: wt,
-        extStop: cleanTrailingPlus('detail_ext'),
-        planDowntime: cleanTrailingPlus('detail_plan'),
-        trial: cleanTrailingPlus('detail_trial'),
-        breakdown: cleanTrailingPlus('detail_break'),
-        speedLoss: cleanTrailingPlus('detail_speed'),
-        minorStop: cleanTrailingPlus('detail_minor')
+        workingTime: 1440,
+        extStop: getRawVal('detail_ext'),
+        planDowntime: getRawVal('detail_plan'),
+        trial: getRawVal('detail_trial'),
+        unused: getRawVal('detail_unused'),
+        defect: getRawVal('detail_defect'),
+        speedLoss: getRawVal('detail_speed'),
+        minorStop: getRawVal('detail_minor'),
+        breakdown: getRawVal('detail_break')
     };
 
     const updates = {};
     updates[idx] = oeeData[idx];
     closeOEEDetail(); 
     await set(ref(database, 'config/oeeData'), updates);
+    updateUI(); 
 };
 
         async function loadOEEData() {
@@ -887,7 +962,6 @@
                     if(parsed) oeeData = parsed;
                 } catch(e){}
             }
-
             const snap = await get(ref(database, 'config/oeeData'));
             if(snap.exists()) {
                 const data = snap.val();
@@ -994,21 +1068,14 @@
             if (nextEl) { nextEl.focus(); nextEl.select(); }
         };
         window.saveSpeedConfig = async (close = true) => {
-            const now = Date.now();
             const updates = {};
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
                 const input = document.getElementById(`inputSpeed_${i}`);
                 if(input) {
                     const newRate = parseInt(input.value);
-                    const oldConfig = lineConfigs[i-1];
-                    const oldRate = oldConfig.rate;
                     if(!isNaN(newRate) && newRate > 0) {
-                        let startPoint = oldConfig.checkpoint || globalStartTime || now;
-                        let minutesElapsed = Math.max(0, (now - startPoint) / 60000);
-                        let addedTheoretical = Math.floor(minutesElapsed * oldRate);
-                        let newBaseline = (oldConfig.baseline || 0) + addedTheoretical;
-                        lineConfigs[i-1] = { rate: newRate, baseline: newBaseline, checkpoint: now };
+                        lineConfigs[i-1] = { ...lineConfigs[i-1], rate: newRate };
                         updates[`${i-1}`] = lineConfigs[i-1];
                     }
                 }
@@ -1020,7 +1087,6 @@
 
         function checkMissedReset() {
             if (!globalStartTime) return; 
-
             const now = new Date();
             const scheduledResetToday = new Date();
             scheduledResetToday.setHours(autoResetConfig.h, autoResetConfig.m, 0, 0);
@@ -1033,7 +1099,7 @@
             }
         }
 
-       function updateClock() {
+        function updateClock() {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('id-ID', {hour12: false});
         
@@ -1055,7 +1121,6 @@
             onValue(startRef, (snap) => {
                 if(snap.val()) { 
                     globalStartTime = snap.val(); 
-                    lineConfigs.forEach(cfg => { if(!cfg.checkpoint) cfg.checkpoint = globalStartTime; }); 
                     checkMissedReset();
                 } 
                 else { 
@@ -1066,66 +1131,68 @@
             });
         }
 
-    // FUNGSI REVISI: Theoretical akan berkurang drastis saat ada Loss Time
-// Sehingga Efisiensi (Actual / Theoretical) akan terlihat lebih tinggi/meningkat
-function calculateTheoretical(lineIndex) {
-    if (!globalStartTime || !lineConfigs[lineIndex-1]) return 0;
-    const config = lineConfigs[lineIndex-1];
-    const rate = Number(config.rate) || 0;
-    
-    const now = Date.now();
-    const startPoint = config.checkpoint || globalStartTime;
-    const minutesElapsed = Math.max(0, (now - startPoint) / 60000);
+    // ----------------------------------------------------------------------
+    // 1. BLIND THEORETICAL (Untuk Dashboard: Jalan Terus)
+    // ----------------------------------------------------------------------
+    function calculateGrossTheoretical(lineIndex) {
+        if (!lineConfigs[lineIndex-1]) return 0;
+        const config = lineConfigs[lineIndex-1];
+        const rate = Number(config.rate) || 0;
+        
+        let minutesRunning = 0;
+        if (config.checkpoint) {
+             minutesRunning = (Date.now() - config.checkpoint) / 60000;
+        } else if(globalStartTime) {
+             minutesRunning = (Date.now() - globalStartTime) / 60000;
+        }
+        if(minutesRunning < 0) minutesRunning = 0;
 
-    // 1. Hitung Gross (Target kotor tanpa gangguan)
-    const grossTheoretical = (Number(config.baseline) || 0) + Math.floor(minutesElapsed * rate);
-
-    // 2. Kalkulasi semua Loss Time dari Input OEE
-    const parseLoss = (val) => {
-        if (!val) return 0;
-        // Menghitung string seperti "10+20+5" menjadi total angka
-        return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
-    };
-
-    const oee = oeeData[lineIndex] || {};
-    const totalLossMinutes = parseLoss(oee.extStop) + parseLoss(oee.planDowntime) + 
-                             parseLoss(oee.trial) + parseLoss(oee.breakdown) + 
-                             parseLoss(oee.speedLoss) + parseLoss(oee.minorStop);
-    
-    // 3. Pengurangan Target: Semakin besar totalLossMinutes, target akan semakin kecil.
-    // Ini akan membuat pembagi (denominator) mengecil sehingga hasil bagi (Efisiensi) meningkat.
-    const lostProduction = Math.floor(totalLossMinutes * rate);
-    let netTheoretical = grossTheoretical - lostProduction;
-    
-    // Safety check: Jangan biarkan target lebih kecil dari actual agar eff tidak lebih dari 100% 
-    // (Opsional: Jika klien ingin eff bisa > 100%, hapus logika penyeimbang ini)
-    const actualSekarang = latestCounter[`L${lineIndex}`] || 0;
-    if (netTheoretical < actualSekarang) {
-        netTheoretical = actualSekarang; 
+        // Rumus: Baseline + (Waktu Berjalan x Speed)
+        // Tidak peduli breakdown, tidak peduli OEE.
+        return (Number(config.baseline) || 0) + Math.floor(minutesRunning * rate);
     }
 
-    return netTheoretical <= 0 ? (actualSekarang > 0 ? actualSekarang : 1) : netTheoretical;
-}
-
-        // Fungsi "Buta" untuk Dashboard (Jalan Terus)
-        function calculateGrossTheoretical(lineIndex) {
-            if (!globalStartTime || !lineConfigs[lineIndex-1]) return 0;
-            const config = lineConfigs[lineIndex-1];
-            const rate = Number(config.rate) || 0;
-            const now = Date.now();
-            const startPoint = config.checkpoint || globalStartTime;
-            const minutesElapsed = Math.max(0, (now - startPoint) / 60000);
-
-            const gross = (Number(config.baseline) || 0) + Math.floor(minutesElapsed * rate);
-            return isNaN(gross) ? 0 : gross;
+    // ----------------------------------------------------------------------
+    // 2. OEE THEORETICAL (Untuk Grafik: Dikurangi Downtime)
+    // ----------------------------------------------------------------------
+    function calculateNetTheoretical(lineIndex) {
+        if (!lineConfigs[lineIndex-1]) return 0;
+        const config = lineConfigs[lineIndex-1];
+        const rate = Number(config.rate) || 0;
+        
+        let minutesRunning = 0;
+        if (config.checkpoint) {
+             minutesRunning = (Date.now() - config.checkpoint) / 60000;
+        } else if(globalStartTime) {
+             minutesRunning = (Date.now() - globalStartTime) / 60000;
         }
+        if(minutesRunning < 0) minutesRunning = 0;
+
+        const d = oeeData[lineIndex] || {};
+        const parseLoss = (val) => {
+            if (!val) return 0;
+            return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
+        };
+
+        const totalDowntimeMinutes = 
+            parseLoss(d.extStop) + parseLoss(d.planDowntime) + parseLoss(d.trial) + parseLoss(d.unused) + 
+            parseLoss(d.defect) + parseLoss(d.speedLoss) + parseLoss(d.minorStop) + parseLoss(d.breakdown);
+
+        const gross = (Number(config.baseline) || 0) + Math.floor(minutesRunning * rate);
+        const lossPcs = Math.floor(totalDowntimeMinutes * rate);
+
+        let net = gross - lossPcs;
+        if (net < 0) net = 0;
+        return net;
+    }
 
         function updateSpecificLine(lineIndex) {
             const actual = latestCounter[`L${lineIndex}`] || 0;
-            // Dashboard menggunakan kalkulasi BUTA
+            // DASHBOARD KEMBALI KE BLIND THEORETICAL
             const prediction = calculateGrossTheoretical(lineIndex); 
             
-            let eff = prediction > 0 ? ((actual / prediction) * 100).toFixed(0) : 0;
+            let eff = 0;
+            if(prediction > 0) eff = ((actual / prediction) * 100).toFixed(1);
             if(eff > 100) eff = 100;
             
             const elActual = document.getElementById(`L${lineIndex}`);
@@ -1148,7 +1215,7 @@ function calculateTheoretical(lineIndex) {
             for (let i = 1; i <= 15; i++) {
                 if(i === 13) continue;
                 const actual = latestCounter[`L${i}`] || 0;
-                // Totals menggunakan kalkulasi BUTA
+                // DASHBOARD KEMBALI KE BLIND THEORETICAL
                 const prediction = calculateGrossTheoretical(i); 
                 if(i === 5 || i === 6) { sumPouchAct += actual; sumPouchPred += prediction; } else { sumClubAct += actual; sumClubPred += prediction; }
             }
@@ -1198,7 +1265,7 @@ function calculateTheoretical(lineIndex) {
                 let badgeClass = (i === 5 || i === 6) ? "badge-pouch" : "badge-club";
                 let typeName = (i === 5 || i === 6) ? "ROUNDCAN" : "CLUBCAN";
                 let currentSpeed = lineConfigs[i-1]?.rate || 70;
-                c.innerHTML += `<div class="card"><div class="card-header"><div><span class="card-title">LINE ${i.toString().padStart(2,'0')}</span><span class="badge ${badgeClass}">${typeName}</span></div><span class="card-speed">${currentSpeed} CPM</span></div><table class="mini-table"><colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><tr><th>Actual</th><th style="text-align:center">THEORITICAL</th><th style="text-align:right">Eff %</th></tr><tr><td class="data-val" id="L${i}">0</td><td class="data-val" style="text-align:center" id="P${i}">0</td><td class="data-val" style="text-align:right" id="E${i}">0%</td></tr></table></div>`;
+                c.innerHTML += `<div class="card"><div class="card-header"><div><span class="card-title">LINE ${i.toString().padStart(2,'0')}</span><span class="badge ${badgeClass}">${typeName}</span></div><span class="card-speed">${currentSpeed} CPM</span></div><table class="mini-table"><colgroup><col style="width:40%"><col style="width:30%"><col style="width:30%"></colgroup><tr><th>Actual</th><th style="text-align:center">THEORETICAL</th><th style="text-align:right">Eff %</th></tr><tr><td class="data-val" id="L${i}">0</td><td class="data-val" style="text-align:center" id="P${i}">0</td><td class="data-val" style="text-align:right" id="E${i}">0%</td></tr></table></div>`;
             }
         }
 
@@ -1216,19 +1283,17 @@ function calculateTheoretical(lineIndex) {
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
                 const act = latestCounter[`L${i}`] || 0;
-                // Save history menggunakan kalkulasi CERDAS (OEE) agar akurat di laporan
-                const theo = calculateTheoretical(i); 
+                const theo = calculateGrossTheoretical(i); // Simpan yang Blind di History
                 totalTheoGlobal += theo;
                 
                 let eff = 0;
                 if(theo > 0) eff = ((act / theo) * 100).toFixed(1);
                 
                 const d = oeeData[i] || {};
-                const lineLoss = parseLoss(d.extStop) + parseLoss(d.planDowntime) + parseLoss(d.trial) + parseLoss(d.breakdown) + parseLoss(d.speedLoss) + parseLoss(d.minorStop);
+                const lineLoss = parseLoss(d.defect) + parseLoss(d.speedLoss) + parseLoss(d.minorStop) + parseLoss(d.breakdown);
                 
                 globalOEE.workingTime += (d.workingTime || 1440);
                 globalOEE.breakdown += parseLoss(d.breakdown);
-                globalOEE.downtime += (lineLoss - parseLoss(d.breakdown));
                 globalOEE.totalLoss += lineLoss;
 
                 lineSnapshot[`L${i}`] = {
@@ -1267,7 +1332,7 @@ function calculateTheoretical(lineIndex) {
 
             const updates = {};
             const oeeUpdates = {};
-            const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, breakdown: 0, speedLoss: 0, minorStop: 0 };
+            const defaultOEE = { workingTime: 1440, extStop: 0, planDowntime: 0, trial: 0, unused: 0, defect: 0, speedLoss: 0, minorStop: 0, breakdown: 0 };
 
             if (isAll) {
                 await set(ref(database, 'config/productionStartTime'), newStartTime);
@@ -1335,111 +1400,82 @@ function calculateTheoretical(lineIndex) {
             } 
         }
         
-    window.initChart = () => {
-    Chart.register(ChartDataLabels);
-    const ctx = document.getElementById('productionChart').getContext('2d');
-    const labels = [];
-    for(let i=1; i<=15; i++) { if(i!==13) labels.push(`L${i.toString().padStart(2,'0')}`); }
+ window.initChart = () => {
+        Chart.register(ChartDataLabels);
+        const ctx = document.getElementById('productionChart').getContext('2d');
+        const labels = [];
+        for(let i=1; i<=15; i++) { if(i!==13) labels.push(`L${i.toString().padStart(2,'0')}`); }
 
-    prodChart = new Chart(ctx, {
-        type: 'bar',
-        data: { 
-            labels: labels, 
-            rawActual: [],
-            rawTheo: [],
-            datasets: [
-                { 
-                    label: 'ACTUAL', 
-                    data: [], 
-                    backgroundColor: '#4ade80', 
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8,
-                    borderRadius: 4, 
-                    datalabels: {
-                        display: true,
-                        color: '#020617', 
-                        anchor: 'center',
-                        align: 'center',
-                        rotation: -90, 
-                        font: { weight: '800', family: "'JetBrains Mono'", size: window.innerWidth < 768 ? 9 : 11 },
-                        formatter: (value, context) => { 
-                            const rawVal = context.chart.data.rawActual[context.dataIndex];
-                            return rawVal > 0 ? rawVal.toLocaleString('id-ID') : ''; 
+        prodChart = new Chart(ctx, {
+            type: 'bar',
+            data: { 
+                labels: labels, 
+                datasets: [
+                    { 
+                        label: 'OEE SCORE %', 
+                        data: [], 
+                        backgroundColor: (context) => {
+                            const val = context.raw;
+                            if (val >= 75) return '#4ade80'; // Hijau
+                            if (val >= 50) return '#facc15'; // Kuning
+                            return '#f87171'; // Merah
+                        },
+                        borderRadius: 6,
+                        barPercentage: 0.8,
+                        datalabels: {
+                            display: true, 
+                            color: '#ffffff', 
+                            anchor: 'end', 
+                            align: 'top', 
+                            rotation: -90, 
+                            font: { weight: '800', family: "'JetBrains Mono'", size: 11 },
+                            
+                            // --- PERBAIKAN DI SINI (LOGIKA OFFSET DINAMIS) ---
+                            offset: (context) => {
+                                // Jika nilainya 0 atau kurang, dorong ke ATAS (10px) supaya tidak nabrak
+                                // Jika nilainya ada, tarik ke BAWAH (-20px) seperti sebelumnya
+                                return context.dataset.data[context.dataIndex] <= 0 ? 10 : -20;
+                            },
+                            // ------------------------------------------------
+                            
+                            formatter: (value) => value + '%'
                         }
                     }
-                },
-                { 
-                    label: 'THEORETICAL (OEE)', 
-                    data: [], 
-                    backgroundColor: '#f87171', 
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8,
-                    borderRadius: 4,
-                    datalabels: {
-                        display: true,
-                        color: '#ffffff', 
-                        anchor: 'center', 
-                        align: 'center',
-                        rotation: -90,
-                        font: { weight: '800', family: "'JetBrains Mono'", size: window.innerWidth < 768 ? 9 : 11 },
-                        formatter: (value, context) => {
-                            const rawTheo = context.chart.data.rawTheo[context.dataIndex];
-                            return rawTheo > 0 ? rawTheo.toLocaleString('id-ID') : ''; 
-                        }
-                    }
-                }
-            ] 
-        },
-        options: { 
-            responsive: true, maintainAspectRatio: false, animation: false, 
-            plugins: { 
-                legend: { display: true, labels: { color: '#94a3b8', font:{family:"'JetBrains Mono'"} } },
-                tooltip: { mode: 'index', intersect: false }
-            }, 
-            scales: { 
-                x: { stacked: true, grid: { display: false }, ticks: { color: '#ffffff', font: { family: "'JetBrains Mono'", size: 10, weight: 'bold' } } },
-                y: { stacked: true, min: 0, max: 100, grid: { color: '#334155', drawBorder: false }, ticks: { display: false } } 
+                ] 
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, animation: false, 
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                }, 
+                scales: { 
+                    x: { grid: { display: false }, ticks: { color: '#ffffff', font: { family: "'JetBrains Mono'", size: 10, weight: 'bold' } } },
+                    y: { min: 0, max: 110, grid: { color: '#334155', drawBorder: false }, ticks: { display: false } } 
+                } 
             } 
-        } 
-    });
-};
+        });
+    };
 
         function updateBarChart() {
             if (!prodChart) return;
-            const visualActualData = [];
-            const visualSisaData = []; 
-            const rawActualData = [];
-            const rawTheoData = [];
-            const newLabels = [];
-
+            const oeeDataChart = [];
+            
             for(let i=1; i<=15; i++) {
                 if(i === 13) continue;
                 const act = latestCounter[`L${i}`] || 0;
-                // Bar Chart menggunakan kalkulasi CERDAS (OEE)
-                const theo = calculateTheoretical(i); 
-
-                rawActualData.push(act);
-                rawTheoData.push(theo);
-
-                let percentAct = 0;
-                if(theo > 0) percentAct = (act / theo) * 100;
-                if(percentAct > 100) percentAct = 100; 
-
-                let percentSisa = 100 - percentAct; 
-                visualActualData.push(percentAct);
-                visualSisaData.push(percentSisa);
-
-                let eff = 0;
-                if (theo > 0) eff = ((act / theo) * 100).toFixed(0);
-                newLabels.push([`L${i.toString().padStart(2,'0')}`, `Eff ${eff}%`]); 
+                
+                // GRAFIK MENGGUNAKAN LOGIKA NETT (OEE)
+                const theo = calculateNetTheoretical(i); 
+                
+                let oeeScore = 0;
+                if (theo > 0) oeeScore = ((act / theo) * 100).toFixed(1);
+                if(oeeScore > 100) oeeScore = 100;
+                oeeDataChart.push(oeeScore);
             }
 
-            prodChart.data.labels = newLabels;
-            prodChart.data.datasets[0].data = visualActualData;
-            prodChart.data.datasets[1].data = visualSisaData;
-            prodChart.data.rawActual = rawActualData;
-            prodChart.data.rawTheo = rawTheoData;
-            prodChart.update();
+            prodChart.data.datasets[0].data = oeeDataChart;
+            prodChart.update('none'); 
         }
 
         async function loadHistoryTable() {
@@ -1453,7 +1489,6 @@ function calculateTheoretical(lineIndex) {
                     let totalTheo = h.grandTheoretical ? parseInt(h.grandTheoretical).toLocaleString('id-ID') : "-";
                     let eff = h.globalEfficiency ? h.globalEfficiency : 0;
                     let breakdown = h.globalOEE ? h.globalOEE.breakdown : 0;
-                    let otherLoss = h.globalOEE ? h.globalOEE.downtime : 0;
                     let effColor = (eff >= 90) ? '#4ade80' : (eff >= 70 ? '#facc15' : '#f87171');
 
                     b.innerHTML += `
@@ -1473,7 +1508,6 @@ function calculateTheoretical(lineIndex) {
                                 <div>EFFICIENCY</div><div style="text-align:right; font-weight:bold; color:${effColor};">${eff}%</div>
                                 <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px;">BREAKDOWN</div>
                                 <div style="margin-top:4px; border-top:1px solid #334155; padding-top:4px; text-align:right; font-weight:bold; color:#f87171;">${breakdown} min</div>
-                                <div>OTHER LOSS</div><div style="text-align:right; font-weight:bold; color:#facc15;">${otherLoss} min</div>
                             </div>
                         </td>
                     </tr>`; 
@@ -1485,18 +1519,23 @@ function calculateTheoretical(lineIndex) {
             const snap = await get(ref(database, 'history')); 
             if (!snap.exists()) return alert("Tidak ada data history!");
             const historyData = Object.values(snap.val()).reverse(); 
-            const dataSheet = [["WAKTU LOG", "RESET TYPE", "LINE NAME", "ACTUAL (Pcs)", "THEORETICAL (Pcs)", "EFFICIENCY (%)", "WORKING TIME (Min)", "EXT STOP (Min)", "PLAN DOWN (Min)", "TRIAL/SETUP (Min)", "BREAKDOWN (Min)", "SPEED LOSS (Min)", "MINOR STOP (Min)"]];
+            const dataSheet = [["WAKTU LOG", "RESET TYPE", "LINE NAME", "ACTUAL (Pcs)", "THEORETICAL (Pcs)", "EFFICIENCY (%)", "WORKING TIME (Min)", "EXT STOP (Min)", "PLAN DOWN (Min)", "TRIAL/SETUP (Min)", "UNUSED (Min)", "DEFECT (Min)", "SPEED LOSS (Min)", "MINOR STOP (Min)", "BREAKDOWN (Min)"]];
             historyData.forEach(h => {
                 if (h.lineDetails) {
                     Object.keys(h.lineDetails).forEach(key => {
                         const line = h.lineDetails[key]; const oee = line.oee || {};
-                        dataSheet.push([h.time, h.resetType || "Auto", key.replace("L", "LINE "), line.actual, line.theoretical, parseFloat(line.efficiency) || 0, oee.workingTime || 1440, oee.extStop || 0, oee.planDowntime || 0, oee.trial || 0, oee.breakdown || 0, oee.speedLoss || 0, oee.minorStop || 0]);
+                        dataSheet.push([
+                            h.time, h.resetType || "Auto", key.replace("L", "LINE "), 
+                            line.actual, line.theoretical, parseFloat(line.efficiency) || 0, 
+                            oee.workingTime || 1440, oee.extStop || 0, oee.planDowntime || 0, oee.trial || 0, oee.unused || 0,
+                            oee.defect || 0, oee.speedLoss || 0, oee.minorStop || 0, oee.breakdown || 0
+                        ]);
                     });
-                    dataSheet.push(Array(13).fill(""));
+                    dataSheet.push(Array(15).fill(""));
                 }
             });
             const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(dataSheet);
-            ws['!cols'] = Array(13).fill({ wch: 18 }); ws['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+            ws['!cols'] = Array(15).fill({ wch: 18 }); ws['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
             XLSX.utils.book_append_sheet(wb, ws, "Produksi Detail");
             XLSX.writeFile(wb, `Laporan_Produksi_PHI_${new Date().toISOString().slice(0,10)}.xlsx`);
         };
