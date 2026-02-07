@@ -894,51 +894,88 @@
                 document.getElementById('section-oee-detail').style.display = 'none';
                 document.getElementById('section-oee-grid').style.display = 'block';
             };
-
-          function calculateDetailOEE() {
+function calculateDetailOEE() {
+    // Helper untuk membaca input (format "10+5")
     const evalSum = (id) => {
         const val = document.getElementById(id).value;
         if (!val) return 0;
         return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
     };
 
-    // --- PERUBAHAN DISINI ---
-    // Ambil Total Waktu dari inputan (yang sudah otomatis dihitung dari Theo/Speed)
-    let totalAvailableTime = parseFloat(document.getElementById('detail_work').value) || 0;
-    
-    // breakdown input (potongan-potongan)
-    const ext = evalSum('detail_ext');
-    const plan = evalSum('detail_plan');
-    const trial = evalSum('detail_trial');
-    const unused = evalSum('detail_unused');
-    const defect = evalSum('detail_defect');
-    const speed = evalSum('detail_speed');
-    const minor = evalSum('detail_minor');
-    const brk = evalSum('detail_break');
+    // --- A. SIAPKAN VARIABEL WAKTU ---
+    let baseTime = parseFloat(document.getElementById('detail_work').value) || 0;
+    if(baseTime === 0) baseTime = 1440; // Default 24 jam
 
-    const totalPotongan = ext + plan + trial + unused + defect + speed + minor + brk;
-    
-    // Net Time = Waktu Teoritis (Working Time) - Total Downtime
-    let netTime = totalAvailableTime - totalPotongan;
-    if(netTime < 0) netTime = 0;
+    // --- B. HITUNG TOTAL GROUP A (Pengurang Runtime Awal) ---
+    // Isi: External Stop, Plan Downtime, Trial, Unused
+    const totalGroupA = 
+        evalSum('detail_ext') + 
+        evalSum('detail_plan') + 
+        evalSum('detail_trial') + 
+        evalSum('detail_unused');
 
-    // Hitung Target Baru berdasarkan Net Time x Speed Mesin
-    const actual = latestCounter[`L${currentOEEIndex}`] || 0;
-    const rate = lineConfigs[currentOEEIndex-1]?.rate || 1;
+    // --- C. HITUNG TOTAL GROUP OEE (Losses) ---
+    // Isi: Quality Defect, Speed Loss, Minor Stop, Breakdown
+    const totalGroupOEE = 
+        evalSum('detail_defect') + 
+        evalSum('detail_speed') + 
+        evalSum('detail_minor') + 
+        evalSum('detail_break');
+
+
+    // --- D. HITUNG AVAILABILITY (RUMUS BARU) ---
     
-    const target = Math.floor(netTime * rate);
+    // 1. Runtime Netto (Waktu Dasar dikurangi Group A)
+    // Ini menjadi PENYEBUT (Pembagi)
+    let runtimeNetto = baseTime - totalGroupA;
     
-    let oeeScore = 0;
-    if (target > 0) {
-        oeeScore = ((actual / target) * 100).toFixed(1);
+    // 2. Waktu Jalan Real (Runtime Netto dikurangi Group OEE)
+    // Ini menjadi PEMBILANG (Yang Dibagi)
+    let realRunTime = runtimeNetto - totalGroupOEE;
+
+    // Validasi agar tidak minus
+    if (runtimeNetto < 0) runtimeNetto = 0;
+    if (realRunTime < 0) realRunTime = 0;
+
+    let availPercent = 0;
+    // Cegah pembagian dengan nol
+    if (runtimeNetto > 0) {
+        availPercent = (realRunTime / runtimeNetto) * 100;
     }
-    // Batasi max 100% jika diinginkan, atau biarkan lebih jika actual > target
-    if(oeeScore > 100) oeeScore = 100; 
 
-    document.getElementById('detail_run_val').innerText = target.toLocaleString('id-ID'); 
-    document.getElementById('detail_oee_score').innerText = oeeScore + "%";
+
+    // --- E. HITUNG PERFORMANCE (RUMUS LAMA/TETAP) ---
+    const actual = latestCounter[`L${currentOEEIndex}`] || 0;
+    const rate = lineConfigs[currentOEEIndex-1]?.rate || 70;
+    
+    // Theoretical tetap menggunakan Base Time (sesuai request "tetap sama")
+    let theoretical = Math.floor(baseTime * rate);
+    
+    let perfPercent = 0;
+    if (theoretical > 0) {
+        perfPercent = (actual / theoretical) * 100;
+    }
+
+
+    // --- F. HITUNG OEE SCORE ---
+    // (Avail% * Perf%) / 100
+    let oeeScore = (availPercent / 100) * (perfPercent / 100) * 100;
+
+    // Cap di 100%
+    if(oeeScore > 100) oeeScore = 100;
+    if(oeeScore < 0) oeeScore = 0;
+
+
+    // --- G. TAMPILKAN KE UI ---
+    document.getElementById('detail_run_val').innerText = theoretical.toLocaleString('id-ID'); 
+    document.getElementById('detail_oee_score').innerText = oeeScore.toFixed(1) + "%";
+    
+    // Warna Indikator
+    const elScore = document.getElementById('detail_oee_score');
+    if(oeeScore >= 85) elScore.style.color = '#4ade80';
+    else if(oeeScore >= 60) elScore.style.color = '#facc15';
+    else elScore.style.color = '#f87171';
 }
-
    window.saveCurrentLineOEE = async () => {
     const idx = currentOEEIndex;
     const getRawVal = (id) => {
@@ -1268,20 +1305,39 @@ function getDynamicWorkingTime(lineIndex) {
 
             function updateUI() { for (let i = 1; i <= 15; i++) { if(i === 13) continue; updateSpecificLine(i); } }
 
-            function connectMQTT() {
-                const client = mqtt.connect(`wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`, { username: mqttConfig.username, password: mqttConfig.password, clientId: 'web_' + Math.random().toString(16).substr(2, 8) });
-                client.on("connect", () => { window.mqttClient = client; for(let i=1; i<=7; i++) client.subscribe(`${mqttConfig.topicBase}/machine0${i}/counter`); });
-                client.on("message", (topic, msg) => {
-                    try {
-                        const data = JSON.parse(msg.toString());
-                        const machine = topic.split('/')[2];
-                        if(Object.values(data.counter).every(v => v === 0) && data.reset_source !== "web") return;
-                        Object.assign(latestCounter, data.counter);
-                        Object.keys(data.counter).forEach(key => { const lineNum = parseInt(key.replace("L", "")); if (!isNaN(lineNum)) updateSpecificLine(lineNum); });
-                        set(ref(database, `lastCache/${machine}`), data);
-                    } catch(e){}
-                });
-            }
+           function connectMQTT() {
+    const client = mqtt.connect(`wss://${mqttConfig.host}:${mqttConfig.port}${mqttConfig.path}`, { 
+        username: mqttConfig.username, 
+        password: mqttConfig.password, 
+        clientId: 'web_' + Math.random().toString(16).substr(2, 8) 
+    });
+
+    client.on("connect", () => { 
+        window.mqttClient = client; 
+        for(let i=1; i<=7; i++) client.subscribe(`${mqttConfig.topicBase}/machine0${i}/counter`); 
+    });
+
+    client.on("message", (topic, msg) => {
+        try {
+            const data = JSON.parse(msg.toString());
+            const machine = topic.split('/')[2];
+            
+            // --- BAGIAN YANG DIHAPUS/KOMENTAR ---
+            // if(Object.values(data.counter).every(v => v === 0) && data.reset_source !== "web") return; 
+            // ------------------------------------
+
+            // Langsung update counter apapun nilainya (termasuk 0)
+            Object.assign(latestCounter, data.counter);
+            
+            Object.keys(data.counter).forEach(key => { 
+                const lineNum = parseInt(key.replace("L", "")); 
+                if (!isNaN(lineNum)) updateSpecificLine(lineNum); 
+            });
+            
+            set(ref(database, `lastCache/${machine}`), data);
+        } catch(e) { console.error("MQTT Error:", e); }
+    });
+}
 
             window.generateCards = () => {
                 const c = document.getElementById("cardsContainer");
@@ -1483,26 +1539,67 @@ function getDynamicWorkingTime(lineIndex) {
             });
         };
 
-            function updateBarChart() {
-                if (!prodChart) return;
-                const oeeDataChart = [];
-                
-                for(let i=1; i<=15; i++) {
-                    if(i === 13) continue;
-                    const act = latestCounter[`L${i}`] || 0;
-                    
-                    // GRAFIK MENGGUNAKAN LOGIKA NETT (OEE)
-                    const theo = calculateNetTheoretical(i); 
-                    
-                    let oeeScore = 0;
-                    if (theo > 0) oeeScore = ((act / theo) * 100).toFixed(1);
-                    if(oeeScore > 100) oeeScore = 100;
-                    oeeDataChart.push(oeeScore);
-                }
+     function updateBarChart() {
+    if (!prodChart) return;
+    const oeeDataChart = [];
 
-                prodChart.data.datasets[0].data = oeeDataChart;
-                prodChart.update('none'); 
-            }
+    const parseVal = (val) => {
+        if (!val) return 0;
+        return val.toString().split('+').reduce((a, b) => Number(a) + (Number(b) || 0), 0);
+    };
+
+    for(let i=1; i<=15; i++) {
+        if(i === 13) continue;
+
+        // --- AMBIL DATA ---
+        const d = oeeData[i] || {};
+        let baseTime = parseFloat(d.workingTime);
+        if(!baseTime && baseTime !== 0) baseTime = 1440;
+
+        const actual = latestCounter[`L${i}`] || 0;
+        const rate = lineConfigs[i-1]?.rate || 70;
+
+        // --- GROUP A ---
+        const groupA = 
+            parseVal(d.extStop) + parseVal(d.planDowntime) + 
+            parseVal(d.trial) + parseVal(d.unused);
+
+        // --- GROUP OEE ---
+        const groupOEE = 
+            parseVal(d.defect) + parseVal(d.speedLoss) + 
+            parseVal(d.minorStop) + parseVal(d.breakdown);
+
+        // --- HITUNG AVAILABILITY (BARU) ---
+        let runtimeNetto = baseTime - groupA;      // Penyebut
+        let realRunTime = runtimeNetto - groupOEE; // Pembilang
+
+        if (runtimeNetto < 0) runtimeNetto = 0;
+        if (realRunTime < 0) realRunTime = 0;
+
+        let availPercent = 0;
+        if (runtimeNetto > 0) {
+            availPercent = (realRunTime / runtimeNetto) * 100;
+        }
+
+        // --- HITUNG PERFORMANCE (LAMA) ---
+        const theoretical = Math.floor(baseTime * rate);
+        let perfPercent = 0;
+        if (theoretical > 0) {
+            perfPercent = (actual / theoretical) * 100;
+        }
+
+        // --- HITUNG OEE SCORE ---
+        let oeeScore = (availPercent / 100) * (perfPercent / 100) * 100;
+
+        if(oeeScore > 100) oeeScore = 100;
+        if(oeeScore < 0) oeeScore = 0;
+
+        oeeDataChart.push(oeeScore.toFixed(1));
+    }
+
+    prodChart.data.datasets[0].data = oeeDataChart;
+    prodChart.update('none'); 
+}
 
             async function loadHistoryTable() {
                 const b = document.getElementById("historyTableBody"); 
