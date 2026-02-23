@@ -972,8 +972,8 @@ function calculateDetailOEE() {
     
     // Warna Indikator
     const elScore = document.getElementById('detail_oee_score');
-    if(oeeScore >= 85) elScore.style.color = '#4ade80';
-    else if(oeeScore >= 60) elScore.style.color = '#facc15';
+    if(oeeScore >= 70.5) elScore.style.color = '#4ade80';
+    else if(oeeScore >= 50) elScore.style.color = '#facc15';
     else elScore.style.color = '#f87171';
 }
    window.saveCurrentLineOEE = async () => {
@@ -1002,8 +1002,10 @@ function calculateDetailOEE() {
     const updates = {};
     updates[idx] = oeeData[idx];
     closeOEEDetail(); 
-    await set(ref(database, 'config/oeeData'), updates);
+    await set(ref(database, 'config/oeeData/' + idx), oeeData[idx]);
     updateUI(); 
+    if(prodChart) updateBarChart(); // Tambahkan baris ini agar grafik langsung berubah setelah save
+    closeOEEDetail();
 };
             async function loadOEEData() {
                 const localOEE = localStorage.getItem('phi_oee_backup');
@@ -1509,7 +1511,7 @@ function getDynamicWorkingTime(lineIndex) {
                                 color: '#ffffff', 
                                 anchor: 'end', 
                                 align: 'top', 
-                                rotation: -90, 
+                                rotation: 0, 
                                 font: { weight: '800', family: "'JetBrains Mono'", size: 11 },
                                 
                                 // --- PERBAIKAN DI SINI (LOGIKA OFFSET DINAMIS) ---
@@ -1641,24 +1643,56 @@ function getDynamicWorkingTime(lineIndex) {
             window.downloadRealExcel = async () => {
                 const snap = await get(ref(database, 'history')); 
                 if (!snap.exists()) return alert("Tidak ada data history!");
+                
                 const historyData = Object.values(snap.val()).reverse(); 
+                
+                // Header Excel
                 const dataSheet = [["WAKTU LOG", "RESET TYPE", "LINE NAME", "ACTUAL (Pcs)", "THEORETICAL (Pcs)", "EFFICIENCY (%)", "WORKING TIME (Min)", "EXT STOP (Min)", "PLAN DOWN (Min)", "TRIAL/SETUP (Min)", "UNUSED (Min)", "DEFECT (Min)", "SPEED LOSS (Min)", "MINOR STOP (Min)", "BREAKDOWN (Min)"]];
+                
                 historyData.forEach(h => {
                     if (h.lineDetails) {
-                        Object.keys(h.lineDetails).forEach(key => {
-                            const line = h.lineDetails[key]; const oee = line.oee || {};
+                        // --- BAGIAN YANG DIEDIT: SORTING LINE SECARA NUMERIK ---
+                        const sortedKeys = Object.keys(h.lineDetails).sort((a, b) => {
+                            // Mengambil angka dari string "L1", "L2", dst dan mengurutkannya
+                            const numA = parseInt(a.replace("L", ""));
+                            const numB = parseInt(b.replace("L", ""));
+                            return numA - numB;
+                        });
+
+                        sortedKeys.forEach(key => {
+                            const line = h.lineDetails[key]; 
+                            const oee = line.oee || {};
+                            
                             dataSheet.push([
-                                h.time, h.resetType || "Auto", key.replace("L", "LINE "), 
-                                line.actual, line.theoretical, parseFloat(line.efficiency) || 0, 
-                                oee.workingTime || 1440, oee.extStop || 0, oee.planDowntime || 0, oee.trial || 0, oee.unused || 0,
-                                oee.defect || 0, oee.speedLoss || 0, oee.minorStop || 0, oee.breakdown || 0
+                                h.time, 
+                                h.resetType || "Auto", 
+                                key.replace("L", "LINE "), // Mengubah L1 jadi LINE 1
+                                line.actual, 
+                                line.theoretical, 
+                                parseFloat(line.efficiency) || 0, 
+                                oee.workingTime || 1440, 
+                                oee.extStop || 0, 
+                                oee.planDowntime || 0, 
+                                oee.trial || 0, 
+                                oee.unused || 0,
+                                oee.defect || 0, 
+                                oee.speedLoss || 0, 
+                                oee.minorStop || 0, 
+                                oee.breakdown || 0
                             ]);
                         });
+                        // Baris kosong pemisah antar history reset
                         dataSheet.push(Array(15).fill(""));
                     }
                 });
-                const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(dataSheet);
-                ws['!cols'] = Array(15).fill({ wch: 18 }); ws['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
+
+                const wb = XLSX.utils.book_new(); 
+                const ws = XLSX.utils.aoa_to_sheet(dataSheet);
+                
+                // Styling kolom agar lebar
+                ws['!cols'] = Array(15).fill({ wch: 18 }); 
+                ws['!views'] = [{ state: 'frozen', xSplit: 0, ySplit: 1 }]; // Freeze Header
+                
                 XLSX.utils.book_append_sheet(wb, ws, "Produksi Detail");
                 XLSX.writeFile(wb, `Laporan_Produksi_PHI_${new Date().toISOString().slice(0,10)}.xlsx`);
             };
